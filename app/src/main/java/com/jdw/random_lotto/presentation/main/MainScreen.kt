@@ -7,7 +7,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -15,43 +14,68 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.BottomMode
-import com.jdw.random_lotto.common.util.TopMode
+import com.jdw.random_lotto.presentation.add.AddScreen
 import com.jdw.random_lotto.presentation.main.components.MainBottomBar
 import com.jdw.random_lotto.presentation.main.components.MainTopBar
+import com.jdw.random_lotto.presentation.view.ViewScreen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
-    val cs = colorScheme
+fun MainScreen(
+    viewModel: MainViewModel = hiltViewModel(),
+    onNavigate: (String) -> Unit = {}
+) {
+    val cs = MaterialTheme.colorScheme
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // 상단 탭 전역 상태
-    val tabTitles = TopMode.entries.toList()
-    var selectedTab by remember { mutableStateOf(TopMode.STANDARD) }
+    // Pager
+    val pagerState = rememberPagerState(
+        initialPage = state.currentPage,
+        pageCount = { state.tabs.size }
+    )
+    val scope = rememberCoroutineScope()
 
-    // 드로어 메뉴 상태
-    var menuExpanded by remember { mutableStateOf(false) }
+    // Effect 처리: 스크롤/네비 등 일회성
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is MainEffect.ScrollPagerTo -> scope.launch {
+                    pagerState.animateScrollToPage(effect.page)
+                }
+                is MainEffect.NavigateTo -> onNavigate(effect.route)
+                is MainEffect.ShowMessage -> {
+                    // Snackbar 등으로 처리 가능
+                }
+            }
+        }
+    }
 
-    // Pager 상태
-    val tabs = BottomMode.entries.toList()
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
+    // Pager의 실제 페이지 변경을 상태에 반영 (드래그로 넘겼을 때)
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage != state.currentPage) {
+            viewModel.dispatch(MainIntent.ChangePage(pagerState.currentPage))
+        }
+    }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("복권") },
                 actions = {
-                    IconButton(onClick = { menuExpanded = true },
+                    IconButton(
+                        onClick = { viewModel.dispatch(MainIntent.MenuExpanded(true)) },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = cs.primary
                         )
@@ -59,17 +83,17 @@ fun MainScreen() {
                         Icon(Icons.Default.MoreVert, contentDescription = "메뉴")
                     }
                     DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false },
-                        containerColor = cs.background,
+                        expanded = state.menuExpanded,
+                        onDismissRequest = { viewModel.dispatch(MainIntent.MenuExpanded(false)) },
+                        containerColor = cs.background
                     ) {
                         DropdownMenuItem(
                             text = { Text("테마 설정") },
-                            onClick = { menuExpanded = false }
+                            onClick = { viewModel.dispatch(MainIntent.ClickMenuSettings) }
                         )
                         DropdownMenuItem(
                             text = { Text("당첨기록") },
-                            onClick = { menuExpanded = false }
+                            onClick = { viewModel.dispatch(MainIntent.ClickMenuHistory) }
                         )
                     }
                 }
@@ -78,59 +102,28 @@ fun MainScreen() {
         bottomBar = {
             MainBottomBar(
                 pagerState = pagerState,
-                tabs = tabs
+                tabs = state.tabs
             )
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
+            modifier = Modifier.padding(innerPadding).fillMaxSize()
         ) {
-            // 상단 탭바
             MainTopBar(
-                tabModeList = tabTitles,
-                selectedTab = selectedTab,
-                onTabSelected = { mode -> selectedTab = mode }
+                tabModeList = state.topTabs.toList(),
+                selectedTab = state.selectedTopTab,
+                onTabSelected = { viewModel.dispatch(MainIntent.SelectTopTab(it)) }
             )
 
-            // Pager 본문
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
             ) { page ->
-                when (tabs[page]) {
-                    BottomMode.VIEW -> ViewScreen(selectedTab)
-                    BottomMode.ADD  -> AddScreen(selectedTab)
+                when (state.tabs[page]) {
+                    BottomMode.VIEW -> ViewScreen(state.selectedTopTab)
+                    BottomMode.ADD  -> AddScreen(state.selectedTopTab)
                 }
             }
         }
-    }
-}
-/* 각 바텀 화면에서 상단 탭 인덱스를 받아 내부 컨텐츠를 분기 */
-@Composable
-fun ViewScreen(selectedTab: TopMode) {
-    when (selectedTab) {
-        TopMode.STANDARD -> TestScreen("조회 화면 - 탭1 내용")
-        TopMode.ANNUITY -> TestScreen("조회 화면 - 탭2 내용")
-    }
-}
-
-@Composable
-fun AddScreen(selectedTab: TopMode) {
-    when (selectedTab) {
-        TopMode.STANDARD -> TestScreen("등록 화면 - 탭1 내용")
-        TopMode.ANNUITY -> TestScreen("등록 화면 - 탭2 내용")
-    }
-}
-
-
-@Composable
-fun TestScreen(text: String) {
-    Button(
-        onClick = { /* 클릭 시 동작 */ },
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Text(text)
     }
 }
