@@ -30,7 +30,7 @@ fun MainTopBar(
         indicator = { _ -> }, // 하단 밑줄 제거
         modifier = Modifier
             .padding(horizontal = 16.dp) // 좌우 마진
-            .clip(RoundedCornerShape(16.dp)) // 탭바 전체를 둥글게
+            .clip(RoundedCornerShape(32.dp)) // 탭바 전체를 둥글게
             .background(barColors),
         containerColor = Color.Transparent
     ) {
@@ -47,7 +47,7 @@ fun MainTopBar(
                 },
                 modifier = Modifier
                     .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .clip(RoundedCornerShape(12.dp)) // radius 12
+                    .clip(RoundedCornerShape(24.dp)) // radius 12
                     .background(if (selectedTab == mode) colorScheme.background else Color.Transparent)
             )
         }
