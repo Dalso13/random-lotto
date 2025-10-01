@@ -10,6 +10,15 @@ class Converters {
 
     @TypeConverter
     fun toType(value: String): LottoType = LottoType.valueOf(value)
+
+    @TypeConverter
+    fun fromIntList(list: List<Int>): String =
+        list.joinToString(",") { it.toString() }
+
+    @TypeConverter
+    fun toIntList(csv: String): List<Int> =
+        if (csv.isBlank()) emptyList()
+        else csv.split(",").map { it.trim().toInt() }
 }
 
 fun LottoEntity.toModel(): LottoModel = LottoModel(

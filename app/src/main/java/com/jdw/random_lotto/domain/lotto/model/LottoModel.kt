@@ -6,7 +6,8 @@ import com.jdw.random_lotto.common.util.LottoType
 @Immutable
 data class LottoModel(
     val id: Long = 0,
-    val number: String,
+    val number: List<Int>,
     val type: LottoType,
-    val createdAt: Long = 0L
+    val createdAt: Long = 0L,
+    val signature: String = number.joinToString("")
 )

@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.BottomMode
 import com.jdw.random_lotto.presentation.lotto.LottoEditScreen
-import com.jdw.random_lotto.presentation.lotto.LottoViewModel
+import com.jdw.random_lotto.presentation.lotto.LottoEditViewModel
 import com.jdw.random_lotto.presentation.main.components.MainBottomBar
 import com.jdw.random_lotto.presentation.main.components.MainTopBar
 import com.jdw.random_lotto.presentation.view.ViewScreen
@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     mainVm: MainViewModel = hiltViewModel(),
-    lottoVm: LottoViewModel = hiltViewModel(),
+    lottoEditVm: LottoEditViewModel = hiltViewModel(),
     onNavigate: (String) -> Unit = {}
 ) {
     val cs = MaterialTheme.colorScheme
@@ -123,7 +123,7 @@ fun MainScreen(
             ) { page ->
                 when (state.tabs[page]) {
                     BottomMode.VIEW -> ViewScreen(state.selectedTopTab)
-                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoVm)
+                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm)
                 }
             }
         }

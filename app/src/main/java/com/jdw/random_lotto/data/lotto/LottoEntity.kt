@@ -11,7 +11,7 @@ import com.jdw.random_lotto.common.util.LottoType
 )
 data class LottoEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val number: String,
+    val number: List<Int>,
     val type: LottoType,
     val createdAt: Long = System.currentTimeMillis()
 )

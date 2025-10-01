@@ -1,120 +1,308 @@
 package com.jdw.random_lotto.presentation.lotto
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.domain.lotto.model.LottoModel
 
+/**
+ * 복권 추가 화면
+ * @param selectedTab - 현재 선택된 탭 (복권 종류)
+ * @param lottoEditVm - 뷰모델
+ * @param onOpenQrScanner - QR 스캐너 열기 콜백
+ * @param onOpenQrFromGallery - 갤러리에서 QR 열기 콜백
+ */
 @Composable
-fun LottoEditScreen(selectedTab: LottoType, lottoVm: LottoViewModel) {
-
+fun LottoEditScreen(
+    selectedTab: LottoType,
+    lottoEditVm: LottoEditViewModel,
+    onOpenQrScanner: () -> Unit = {},
+    onOpenQrFromGallery: () -> Unit = {},
+) {
     val cs = colorScheme
+    val state by lottoEditVm.state.collectAsStateWithLifecycle()
 
-    val state = lottoVm.state.collectAsStateWithLifecycle()
-
-    // 탭별 아이템만 필터 (계산 최소화)
-    val lottoItems by remember(state.value.insertItems, selectedTab) {
-        derivedStateOf { state.value.insertItems.filter { it.type == selectedTab } }
+    // 탭별 아이템만
+    val lottoItems by remember(state.insertItems, selectedTab) {
+        derivedStateOf { state.insertItems.filter { it.type == selectedTab } }
     }
 
-    val deselectedNumbers = rememberSaveable(selectedTab) { mutableStateListOf<String>() }
+    // 탭별 선택 해제된 키
+    val deselected: Set<String> = state.deselectedKeysByType.getValue(selectedTab)
 
-    // 리스트가 바뀔 때, 더 이상 존재하지 않는 번호는 해제 집합에서 정리
-    LaunchedEffect(lottoItems) {
-        val cur = lottoItems.map { it.number }.toSet()
-        deselectedNumbers.retainAll(cur) // 사라진 항목 정리
+    // 선택 개수 계산
+    val keys by remember(lottoItems) { derivedStateOf { lottoItems.map { it.signature } } }
+    val selectedCount by remember(keys, deselected) {
+        derivedStateOf { keys.size - deselected.count { it in keys.toSet() } }
     }
 
-    val selectBoxColor = cs.primaryContainer
-    val unSelectBoxBorder = cs.onSurface
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        Button(
-            onClick = {
-                lottoVm.dispatch(LottoIntent.Edit(selectedTab))
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp) ,
-            shape = RoundedCornerShape(8.dp),
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 96.dp)
         ) {
-            Text(text = "무작위 생성")
-        }
 
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(lottoItems) { item ->
-                val isSelected = item.number !in deselectedNumbers
-
-                Box(
+            // 상단 고정 액션줄
+            stickyHeader {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                        .then(
-                            if (!isSelected) Modifier.border(
-                                width = 1.dp,
-                                color = unSelectBoxBorder,
-                                shape = RoundedCornerShape(8.dp)
-                            ) else Modifier
-                        )
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            if (isSelected) selectBoxColor
-                            else cs.background
-                        )
-                        .clickable {
-                            if (isSelected) deselectedNumbers.add(item.number)
-                            else deselectedNumbers.remove(item.number)
-                        }
-                        .padding(12.dp)
+                        .background(cs.background)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+
+                    // 무작위 생성 버튼
+                    OutlinedButton(
+                        onClick = { lottoEditVm.dispatch(LottoEditIntent.Edit(selectedTab)) },
+                        border = BorderStroke(1.dp, cs.primary),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = cs.primary),
+                        shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(
-                            text = item.number
+                        Icon(
+                            Icons.Filled.Casino,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.weight(1f))
-                        if (isSelected) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = cs.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        Spacer(Modifier.width(6.dp))
+                        Text("무작위 생성")
+                    }
+
+                    // 갤러리 QR 버튼
+                    OutlinedButton(
+                        onClick = onOpenQrFromGallery,
+                        border = BorderStroke(1.dp, cs.primary),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = cs.primary),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.PhotoLibrary,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("갤러리 QR")
+                    }
+
+                    Spacer(Modifier.weight(1f))
+
+                    // 전체 선택/해제
+                    IconButton(onClick = {
+                        lottoEditVm.dispatch(LottoEditIntent.SelectAll(selectedTab, keys.toSet()))
+                    }) {
+                        Icon(
+                            if (deselected.isEmpty()) Icons.Filled.RadioButtonChecked
+                            else Icons.Filled.RadioButtonUnchecked,
+                            contentDescription = null,
+                            tint = cs.primary
+                        )
                     }
                 }
             }
+
+            // 리스트
+            items(
+                items = lottoItems,
+                key = { it.signature }
+            ) { item ->
+                val key = remember(item) { item.signature }
+                val selected = key !in deselected
+
+                LottoRow(
+                    item = item,
+                    selected = selected,
+                    onToggle = {
+                        lottoEditVm.dispatch(LottoEditIntent.ToggleSelect(selectedTab, key))
+                    }
+                )
+            }
+        }
+
+        // 선택된 아이템 저장 버튼
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 12.dp, vertical = 12.dp)
+        ) {
+            Button(
+                onClick = {
+                    lottoEditVm.dispatch(LottoEditIntent.Save(selectedTab))
+                },
+                enabled = selectedCount > 0,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = cs.primary,
+                    contentColor = cs.onPrimary,
+                    disabledContainerColor = cs.primaryContainer,
+                    disabledContentColor = cs.onPrimaryContainer
+                ),
+                shape = RoundedCornerShape(14.dp)
+            ) { Text("선택 ${selectedCount}개 저장") }
+        }
+
+        // QR 스캔 플로팅 액션 버튼
+        ExtendedFloatingActionButton(
+            onClick = onOpenQrScanner,
+            icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
+            text = { Text("QR 스캔") },
+            containerColor = cs.primary,
+            contentColor = cs.onPrimary,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 84.dp)
+        )
+    }
+}
+
+
+/**
+ * 리스트 아이템
+ * @param item - 복권 모델
+ * @param selected - 선택됨 여부
+ * @param onToggle - 선택/해제 토글 콜백
+ */
+@Composable
+private fun LottoRow(
+    item: LottoModel,
+    selected: Boolean,
+    onToggle: () -> Unit
+) {
+    val cs = colorScheme
+    val tp = typography
+
+    val bg by animateColorAsState(if (selected) cs.primaryContainer else cs.surface, label = "bg")
+    val border by animateColorAsState(
+        if (selected) cs.primary.copy(alpha = .35f) else cs.outline.copy(
+            alpha = .6f
+        ), label = "bd"
+    )
+    val elev by animateDpAsState(if (selected) 2.dp else 0.dp, label = "elev")
+
+    Surface(
+        onClick = onToggle,
+        color = bg,
+        tonalElevation = elev,
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, border),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+        ) {
+            // 연금: 조 배지
+            if (item.type == LottoType.ANNUITY) {
+                val group = item.number.firstOrNull() ?: 0
+                BadgeBox("조 $group")
+                Spacer(Modifier.width(12.dp))
+            }
+
+            // 숫자 칩들
+            val digits by remember(item) {
+                derivedStateOf {
+                    if (item.type == LottoType.ANNUITY) item.number.drop(1) else item.number
+                }
+            }
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = 6,
+                modifier = Modifier.weight(1f)
+            ) {
+                val chipBg =
+                    if (selected) cs.background.copy(alpha = .7f) else cs.surfaceVariant.copy(alpha = .7f)
+                val chipBd =
+                    if (selected) cs.primary.copy(alpha = .25f) else cs.outline.copy(alpha = .4f)
+                val chipTx = if (selected) cs.onBackground else cs.onSurfaceVariant
+
+                digits.forEach { n ->
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(chipBg)
+                            .border(1.dp, chipBd, RoundedCornerShape(999.dp))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text("%02d".format(n), style = tp.labelLarge, color = chipTx)
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = selected) {
+                Icon(
+                    Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = cs.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
         }
     }
+}
+
+/**
+ * 숫자 배지
+ */
+@Composable
+private fun BadgeBox(text: String) {
+    val cs = colorScheme
+    Box(
+        Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(cs.primary.copy(alpha = .12f))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) { Text(text, style = typography.labelMedium, color = cs.primary) }
 }
