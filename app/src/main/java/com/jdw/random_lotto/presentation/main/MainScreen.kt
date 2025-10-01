@@ -25,7 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.BottomMode
-import com.jdw.random_lotto.presentation.add.AddScreen
+import com.jdw.random_lotto.presentation.lotto.LottoEditScreen
+import com.jdw.random_lotto.presentation.lotto.LottoViewModel
 import com.jdw.random_lotto.presentation.main.components.MainBottomBar
 import com.jdw.random_lotto.presentation.main.components.MainTopBar
 import com.jdw.random_lotto.presentation.view.ViewScreen
@@ -34,11 +35,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    viewModel: MainViewModel = hiltViewModel(),
+    mainVm: MainViewModel = hiltViewModel(),
+    lottoVm: LottoViewModel = hiltViewModel(),
     onNavigate: (String) -> Unit = {}
 ) {
     val cs = MaterialTheme.colorScheme
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by mainVm.state.collectAsStateWithLifecycle()
 
     // Pager
     val pagerState = rememberPagerState(
@@ -49,7 +51,7 @@ fun MainScreen(
 
     // Effect 처리: 스크롤/네비 등 일회성
     LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
+        mainVm.effect.collect { effect ->
             when (effect) {
                 is MainEffect.ScrollPagerTo -> scope.launch {
                     pagerState.animateScrollToPage(effect.page)
@@ -65,7 +67,7 @@ fun MainScreen(
     // Pager의 실제 페이지 변경을 상태에 반영 (드래그로 넘겼을 때)
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage != state.currentPage) {
-            viewModel.dispatch(MainIntent.ChangePage(pagerState.currentPage))
+            mainVm.dispatch(MainIntent.ChangePage(pagerState.currentPage))
         }
     }
 
@@ -75,7 +77,7 @@ fun MainScreen(
                 title = { Text("복권") },
                 actions = {
                     IconButton(
-                        onClick = { viewModel.dispatch(MainIntent.MenuExpanded(true)) },
+                        onClick = { mainVm.dispatch(MainIntent.MenuExpanded(true)) },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = cs.primary
                         )
@@ -84,16 +86,16 @@ fun MainScreen(
                     }
                     DropdownMenu(
                         expanded = state.menuExpanded,
-                        onDismissRequest = { viewModel.dispatch(MainIntent.MenuExpanded(false)) },
+                        onDismissRequest = { mainVm.dispatch(MainIntent.MenuExpanded(false)) },
                         containerColor = cs.background
                     ) {
                         DropdownMenuItem(
                             text = { Text("테마 설정") },
-                            onClick = { viewModel.dispatch(MainIntent.ClickMenuSettings) }
+                            onClick = { mainVm.dispatch(MainIntent.ClickMenuSettings) }
                         )
                         DropdownMenuItem(
                             text = { Text("당첨기록") },
-                            onClick = { viewModel.dispatch(MainIntent.ClickMenuHistory) }
+                            onClick = { mainVm.dispatch(MainIntent.ClickMenuHistory) }
                         )
                     }
                 }
@@ -112,7 +114,7 @@ fun MainScreen(
             MainTopBar(
                 tabModeList = state.topTabs.toList(),
                 selectedTab = state.selectedTopTab,
-                onTabSelected = { viewModel.dispatch(MainIntent.SelectTopTab(it)) }
+                onTabSelected = { mainVm.dispatch(MainIntent.SelectTopTab(it)) }
             )
 
             HorizontalPager(
@@ -121,7 +123,7 @@ fun MainScreen(
             ) { page ->
                 when (state.tabs[page]) {
                     BottomMode.VIEW -> ViewScreen(state.selectedTopTab)
-                    BottomMode.ADD  -> AddScreen(state.selectedTopTab)
+                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoVm)
                 }
             }
         }
