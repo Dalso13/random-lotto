@@ -1,10 +1,9 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-
-    id("com.google.dagger.hilt.android")
-    kotlin("kapt")
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp") version "2.1.21-2.0.1"
+    id("com.google.dagger.hilt.android") version "2.54"
 }
 
 android {
@@ -37,12 +36,13 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -70,13 +70,30 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Hilt + ViewModel
-    implementation("com.google.dagger:hilt-android:2.51")
-    kapt("com.google.dagger:hilt-android-compiler:2.51")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("com.google.dagger:hilt-android:2.54")
+    ksp("com.google.dagger:hilt-compiler:2.54")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
 
     // Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Room
+    val room = "2.6.1"
+    implementation("androidx.room:room-runtime:$room")
+    implementation("androidx.room:room-ktx:$room")
+    ksp("androidx.room:room-compiler:$room")
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.incremental", "true")
+    arg("room.generateKotlin", "true")
+}
+
+// 빌드 에러나서 끔 (javapoet 사용하는 기능인데 충돌나는듯)
+hilt {
+    enableAggregatingTask = false
 }

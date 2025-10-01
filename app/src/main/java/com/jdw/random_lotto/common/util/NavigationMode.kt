@@ -1,7 +1,7 @@
 package com.jdw.random_lotto.common.util
 
 // 상단 탭 모드
-enum class TopMode(val label: String, val title: String) {
+enum class LottoType(val label: String, val title: String) {
     STANDARD("Standard", "6/45 로또"),
     ANNUITY("Annuity", "연금복권"),;
 
