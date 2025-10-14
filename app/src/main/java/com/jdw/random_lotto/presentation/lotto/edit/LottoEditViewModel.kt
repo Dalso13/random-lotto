@@ -1,4 +1,4 @@
-package com.jdw.random_lotto.presentation.lotto
+package com.jdw.random_lotto.presentation.lotto.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

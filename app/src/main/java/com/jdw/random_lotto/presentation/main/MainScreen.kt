@@ -25,11 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.BottomMode
-import com.jdw.random_lotto.presentation.lotto.LottoEditScreen
-import com.jdw.random_lotto.presentation.lotto.LottoEditViewModel
+import com.jdw.random_lotto.presentation.lotto.edit.LottoEditScreen
+import com.jdw.random_lotto.presentation.lotto.edit.LottoEditViewModel
+import com.jdw.random_lotto.presentation.lotto.result.LottoResultScreen
 import com.jdw.random_lotto.presentation.main.components.MainBottomBar
 import com.jdw.random_lotto.presentation.main.components.MainTopBar
-import com.jdw.random_lotto.presentation.view.ViewScreen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,7 +122,7 @@ fun MainScreen(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (state.tabs[page]) {
-                    BottomMode.VIEW -> ViewScreen(state.selectedTopTab)
+                    BottomMode.VIEW -> LottoResultScreen(state.selectedTopTab)
                     BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm)
                 }
             }

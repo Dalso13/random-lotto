@@ -1,4 +1,4 @@
-package com.jdw.random_lotto.presentation.lotto
+package com.jdw.random_lotto.presentation.lotto.edit
 
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.domain.lotto.model.LottoModel
