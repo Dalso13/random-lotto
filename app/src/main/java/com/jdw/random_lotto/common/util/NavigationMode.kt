@@ -15,3 +15,9 @@ enum class BottomMode(val label: String) {
 
     override fun toString(): String = label
 }
+
+// 회차 선택
+enum class Segment {
+    LAST,      // 지난주
+    CURRENT   // 이번주
+}

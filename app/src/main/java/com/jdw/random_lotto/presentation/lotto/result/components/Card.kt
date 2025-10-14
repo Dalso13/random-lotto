@@ -1,9 +1,7 @@
 package com.jdw.random_lotto.presentation.lotto.result.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +13,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.presentation.lotto.result.TicketResult
+import com.jdw.random_lotto.presentation.main.components.CapsuleChip
+import com.jdw.random_lotto.presentation.main.components.NumbersFlow
+import com.jdw.random_lotto.presentation.main.components.rememberCapsuleStyle
 
 data class MyTicket(
     val id: String,
@@ -66,20 +70,30 @@ fun TicketCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (type == LottoType.ANNUITY) {
-                    Chip("조 ${ticket.annuityGroup ?: 1}", filled = false)
+                    val group = ticket.annuityGroup ?: 0
+                    CapsuleChip(
+                        text = "조 $group",
+                        style = rememberCapsuleStyle(emphasis = false) // 필요 시 강조 true
+                    )
                     Spacer(Modifier.width(12.dp))
                 }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ticket.numbers.forEachIndexed { idx, n ->
-                        // 연금복권은 첫 숫자가 '조'라면 제외하고 칩 렌더
-                        val isMatched = matchedNums.contains(n)
-                        NumberChip(
-                            num = n,
-                            emphasis = false,
-                            matched = isMatched
-                        )
-                    }
+
+// digits: 연금이면 첫 자리(조) 제외, 아니면 그대로
+                val digits by remember(ticket.numbers, type) {
+                    mutableStateOf(
+                        if (type == LottoType.ANNUITY) ticket.numbers.drop(1) else ticket.numbers
+                    )
                 }
+
+// 공통 숫자 나열 유틸 사용
+                NumbersFlow(
+                    numbers = digits,
+                    matched = matchedNums,          // 지난 회차 매칭 강조용
+                    emphasisAll = false,            // 당첨번호 강조 아님(개별 매칭만 강조)
+                    isBonus = { false },            // 필요 시 보너스 기준 넣기
+                    maxItemsInEachRow = 6
+                )
+
             }
 
             // 결과 요약

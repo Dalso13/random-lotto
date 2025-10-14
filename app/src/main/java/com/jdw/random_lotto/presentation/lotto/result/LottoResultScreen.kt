@@ -22,12 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.common.util.Segment
 import com.jdw.random_lotto.presentation.lotto.result.components.MyTicket
 import com.jdw.random_lotto.presentation.lotto.result.components.RoundHeader
 import com.jdw.random_lotto.presentation.lotto.result.components.TicketCard
 import com.jdw.random_lotto.presentation.lotto.result.components.WinningSet
-
-enum class Segment { LAST, CURRENT }
 
 // 결과 화면 ----------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,8 +66,6 @@ fun LottoResultScreen(selectedTab: LottoType) {
             onSelectSegment = { segment = it },
             selectedTab = selectedTab,
             dummy = dummy,
-            winnersOnly = winnersOnly,
-            onToggleWinners = { winnersOnly = !winnersOnly },
         )
 
         // 리스트

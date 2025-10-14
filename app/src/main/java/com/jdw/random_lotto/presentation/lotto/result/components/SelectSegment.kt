@@ -13,12 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.jdw.random_lotto.presentation.lotto.result.Segment
+import com.jdw.random_lotto.common.util.Segment
 
-private data class SegmentChip<T : Enum<T>>(val key: T, val label: String)
+private data class SegmentChip(val key: Segment, val label: String)
 
 @Composable
-fun SingleChoiceSegment(
+fun SelectSegment(
     selected: Segment,
     onSelect: (Segment) -> Unit,
     lastLabel: String,

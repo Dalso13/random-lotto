@@ -1,14 +1,9 @@
 package com.jdw.random_lotto.presentation.lotto.edit
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.RadioButtonChecked
@@ -34,9 +28,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -44,11 +36,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.LottoType
-import com.jdw.random_lotto.domain.lotto.model.LottoModel
+import com.jdw.random_lotto.presentation.lotto.edit.components.LottoItem
 
 /**
  * 복권 추가 화면
@@ -154,7 +145,7 @@ fun LottoEditScreen(
                 val key = remember(item) { item.signature }
                 val selected = key !in deselected
 
-                LottoRow(
+                LottoItem(
                     item = item,
                     selected = selected,
                     onToggle = {
@@ -200,109 +191,4 @@ fun LottoEditScreen(
                 .padding(end = 16.dp, bottom = 84.dp)
         )
     }
-}
-
-
-/**
- * 리스트 아이템
- * @param item - 복권 모델
- * @param selected - 선택됨 여부
- * @param onToggle - 선택/해제 토글 콜백
- */
-@Composable
-private fun LottoRow(
-    item: LottoModel,
-    selected: Boolean,
-    onToggle: () -> Unit
-) {
-    val cs = colorScheme
-    val tp = typography
-
-    val bg by animateColorAsState(if (selected) cs.primaryContainer else cs.surface, label = "bg")
-    val border by animateColorAsState(
-        if (selected) cs.primary.copy(alpha = .35f) else cs.outline.copy(
-            alpha = .6f
-        ), label = "bd"
-    )
-    val elev by animateDpAsState(if (selected) 2.dp else 0.dp, label = "elev")
-
-    Surface(
-        onClick = onToggle,
-        color = bg,
-        tonalElevation = elev,
-        shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, border),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp)
-        ) {
-            // 연금: 조 배지
-            if (item.type == LottoType.ANNUITY) {
-                val group = item.number.firstOrNull() ?: 0
-                BadgeBox("조 $group")
-                Spacer(Modifier.width(12.dp))
-            }
-
-            // 숫자 칩들
-            val digits by remember(item) {
-                derivedStateOf {
-                    if (item.type == LottoType.ANNUITY) item.number.drop(1) else item.number
-                }
-            }
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                maxItemsInEachRow = 6,
-                modifier = Modifier.weight(1f)
-            ) {
-                val chipBg =
-                    if (selected) cs.background.copy(alpha = .7f) else cs.surfaceVariant.copy(alpha = .7f)
-                val chipBd =
-                    if (selected) cs.primary.copy(alpha = .25f) else cs.outline.copy(alpha = .4f)
-                val chipTx = if (selected) cs.onBackground else cs.onSurfaceVariant
-
-                digits.forEach { n ->
-                    Box(
-                        Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(chipBg)
-                            .border(1.dp, chipBd, RoundedCornerShape(999.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
-                        Text("%02d".format(n), style = tp.labelLarge, color = chipTx)
-                    }
-                }
-            }
-
-            AnimatedVisibility(visible = selected) {
-                Icon(
-                    Icons.Filled.Check,
-                    contentDescription = null,
-                    tint = cs.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-        }
-    }
-}
-
-/**
- * 숫자 배지
- */
-@Composable
-private fun BadgeBox(text: String) {
-    val cs = colorScheme
-    Box(
-        Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(cs.primary.copy(alpha = .12f))
-            .padding(horizontal = 10.dp, vertical = 6.dp)
-    ) { Text(text, style = typography.labelMedium, color = cs.primary) }
 }

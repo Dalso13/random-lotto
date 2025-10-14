@@ -1,7 +1,6 @@
 package com.jdw.random_lotto.presentation.lotto.result.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Divider
@@ -37,8 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.common.util.Segment
 import com.jdw.random_lotto.presentation.lotto.result.ResultDummy
-import com.jdw.random_lotto.presentation.lotto.result.Segment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,8 +45,6 @@ fun RoundHeader(
     onSelectSegment: (Segment) -> Unit,
     selectedTab: LottoType,
     dummy: ResultDummy,
-    winnersOnly: Boolean,
-    onToggleWinners: () -> Unit,
 ) {
     val cs = MaterialTheme.colorScheme
 
@@ -94,32 +90,6 @@ fun RoundHeader(
                 )
             } else {
                 CurrentRoundHeader(nextDateText = dummy.nextDrawText)
-            }
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        // 필터/정렬 바 (지난 회차에서만 노출)
-        AnimatedVisibility(visible = segment == Segment.LAST) {
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FilterChip(
-                    selected = winnersOnly,
-                    onClick = onToggleWinners,
-                    label = { Text("당첨만") },
-                    leadingIcon = {
-                        if (winnersOnly) Icon(Icons.Filled.Check, null, Modifier.size(18.dp))
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = cs.surface,
-                        labelColor = cs.onSurface,
-                        selectedContainerColor = cs.primaryContainer,
-                        selectedLabelColor = cs.onPrimaryContainer,
-                        selectedLeadingIconColor = cs.onPrimaryContainer,
-                    )
-                )
             }
         }
 
