@@ -1,8 +1,9 @@
-package com.jdw.random_lotto.data.lotto
+package com.jdw.random_lotto.data.lotto.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.jdw.random_lotto.data.lotto.db.entity.LottoEntity
 
 @Database(
     entities = [LottoEntity::class],

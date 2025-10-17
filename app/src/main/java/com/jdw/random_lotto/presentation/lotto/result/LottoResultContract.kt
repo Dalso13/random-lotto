@@ -1,17 +1,23 @@
 package com.jdw.random_lotto.presentation.lotto.result
 
-import com.jdw.random_lotto.domain.lotto.model.LottoModel
+import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.common.util.Segment
+import com.jdw.random_lotto.domain.lotto.model.AnnuityWinningModel
+import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
+import com.jdw.random_lotto.domain.lotto.model.StandardWinningModel
 
 // 상태
 data class LottoResultState(
-    val selectItems: List<LottoModel> = emptyList(),                // 조회된 항목들
+    val standardWinningModel: StandardWinningModel,                 // 6/45 당첨 모델
+    val annuityWinningModel: AnnuityWinningModel,                   // 연금 복권 당첨 모델
+    val resultItems: List<LottoResultModel> = emptyList(),          // 조회된 로또모델 리스트
     val isLoading: Boolean = false,                                 // 로딩 상태
     val error: String? = null                                       // 에러 메시지
 )
 
 // intent (동작)
 sealed interface LottoResultIntent {
-    data class Select(val type: String) : LottoResultIntent              // 로드 (DB에서 불러오기)
+    data class Load(val type: LottoType, val segment: Segment) : LottoResultIntent              // 로드 (DB에서 불러오기)
 }
 
 // ui effect (일회성 이벤트)

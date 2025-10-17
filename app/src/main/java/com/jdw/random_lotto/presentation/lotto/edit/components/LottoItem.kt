@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -43,7 +42,6 @@ fun LottoItem(
     onToggle: () -> Unit
 ) {
     val cs = colorScheme
-    val tp = typography
 
     val bg by animateColorAsState(if (selected) cs.primaryContainer else cs.surface, label = "bg")
     val border by animateColorAsState(

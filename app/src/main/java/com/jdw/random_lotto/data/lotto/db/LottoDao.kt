@@ -1,9 +1,10 @@
-package com.jdw.random_lotto.data.lotto
+package com.jdw.random_lotto.data.lotto.db
 
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.data.lotto.db.entity.LottoEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,9 +17,6 @@ interface LottoDao {
     @Upsert
     suspend fun upsertAll(items: List<LottoEntity>): List<Long>
 
-    @Query("SELECT * FROM lotto WHERE type = :type ORDER BY createdAt DESC")
-    fun observeAll(type: LottoType): Flow<List<LottoEntity>>
-
     @Query("SELECT * FROM lotto WHERE id = :id")
     suspend fun getById(id: Long): LottoEntity?
 
@@ -30,4 +28,7 @@ interface LottoDao {
 
     @Query("SELECT COUNT(*) FROM lotto WHERE type = :type")
     fun observeCount(type: LottoType): Flow<Long>
+
+    @Query("SELECT * FROM lotto WHERE type = :type AND createdAt BETWEEN :start AND :end ORDER BY createdAt DESC")
+    fun load(type: LottoType, start: Long, end: Long): List<LottoEntity>
 }

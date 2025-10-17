@@ -2,6 +2,9 @@ package com.jdw.random_lotto.presentation.lotto.result
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.common.util.Segment
+import com.jdw.random_lotto.domain.lotto.useCase.LottoLoadUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LottoResultViewModel @Inject constructor(
-
+    loadUseCase: LottoLoadUseCase
 ) : ViewModel() {
 
     // State
@@ -30,14 +33,14 @@ class LottoResultViewModel @Inject constructor(
     // Intent 처리
     fun dispatch(intent: LottoResultIntent) {
         when (intent) {
-            is LottoResultIntent.Select -> select()
+            is LottoResultIntent.Load -> getLottoResult(intent.type, intent.segment)
         }
     }
 
     /**
      * 조회
      */
-    private fun select() {
+    private fun getLottoResult(type: LottoType, segment: Segment) {
 
     }
 

@@ -18,13 +18,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 
-@Immutable
-data class CapsuleStyle(
-    val container: Color,
-    val content: Color,
-    val border: Color
-)
-
+/**
+ * 숫자 캡슐 플로우
+ * @param numbers - 표시할 숫자 리스트
+ * @param modifier - Modifier
+ * @param matched - 일치하는 번호 집합 (강조용)
+ * @param emphasisAll - 모든 번호 강조
+ * @param isBonus - 보너스 번호 여부 판단 람다 (보너스는 강조 색상 다름)
+ * @param selected - 선택 상태 (선택된 항목 강조)
+ * @param maxItemsInEachRow - 한 행에 표시할 최대 아이템 수
+ */
 @Composable
 fun NumbersFlow(
     numbers: List<Int>,
@@ -53,6 +56,15 @@ fun NumbersFlow(
     }
 }
 
+/**
+ * 캡슐 칩
+ * @param text - 표시할 텍스트
+ * @param modifier - Modifier
+ * @param style - 캡슐 스타일
+ * @param padding - 내부 여백
+ * @param shape - 모양 (기본은 완전 둥근 캡슐)
+ * @param textStyle - 텍스트 스타일
+ */
 @Composable
 fun CapsuleChip(
     text: String,
@@ -73,7 +85,14 @@ fun CapsuleChip(
     }
 }
 
-
+/**
+ * 숫자 캡슐
+ * @param number - 표시할 숫자
+ * @param emphasis - 당첨번호/헤더 강조
+ * @param matched - 일치 번호 강조
+ * @param isBonus - 보너스 번호 여부
+ * @param selected - 선택 상태 (선택된 항목 강조)
+ */
 @Composable
 fun NumberCapsule(
     number: Int,
@@ -92,12 +111,32 @@ fun NumberCapsule(
     )
 }
 
+/**
+ * 캡슐색 정의 데이터
+ * @param container - 배경
+ * @param content - 글자색
+ * @param border - 테두리
+ */
+@Immutable
+data class CapsuleStyle(
+    val container: Color,
+    val content: Color,
+    val border: Color
+)
+
+/**
+ * 캡슐 스타일 기억
+ * @param emphasis - 당첨번호/헤더 강조
+ * @param matched - 일치 번호 강조
+ * @param isBonus - 보너스 번호
+ * @param selected - 리스트 선택 상태
+ */
 @Composable
 fun rememberCapsuleStyle(
-    emphasis: Boolean = false,   // 당첨번호/헤더 강조
-    matched: Boolean = false,    // 일치 번호 강조
-    isBonus: Boolean = false,    // 보너스 번호
-    selected: Boolean = false    // 리스트 선택 상태
+    emphasis: Boolean = false,
+    matched: Boolean = false,
+    isBonus: Boolean = false,
+    selected: Boolean = false
 ): CapsuleStyle {
     val cs = MaterialTheme.colorScheme
     val container = when {

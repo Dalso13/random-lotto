@@ -1,4 +1,4 @@
-package com.jdw.random_lotto.data.lotto
+package com.jdw.random_lotto.data.lotto.db.entity
 
 import androidx.room.Entity
 import androidx.room.Index
@@ -15,4 +15,3 @@ data class LottoEntity(
     val type: LottoType,
     val createdAt: Long = System.currentTimeMillis()
 )
-

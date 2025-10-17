@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
-import com.jdw.random_lotto.data.lotto.toEntity
+import com.jdw.random_lotto.data.lotto.db.toEntity
 import com.jdw.random_lotto.domain.lotto.useCase.LottoEditUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.LottoSaveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -94,7 +94,7 @@ class LottoEditViewModel @Inject constructor(
 
         viewModelScope.launch {
             reduce { it.copy(isLoading = true, error = null) }
-            when (val result = saveUseCase.addAll(selected.map { it.toEntity() })) {
+            when (val result = saveUseCase(selected.map { it.toEntity() })) {
                 is LottoResult.Success -> {
                     reduce { st ->
                         st.copy(
@@ -103,12 +103,9 @@ class LottoEditViewModel @Inject constructor(
                             deselectedKeysByType = st.deselectedKeysByType + (type to emptySet())
                         )
                     }
-                    emit(LottoEditEffect.ShowSnackbar("저장 완료!"))
+                    emit(LottoEditEffect.ShowSnackbar(result.value))
                 }
-                is LottoResult.Partial -> {
-                    emit(LottoEditEffect.ShowSnackbar(result.message))
-                }
-                is LottoResult.Error -> {
+                is LottoResult.Fail -> {
                     reduce { it.copy(isLoading = false, error = result.message) }
                 }
             }
