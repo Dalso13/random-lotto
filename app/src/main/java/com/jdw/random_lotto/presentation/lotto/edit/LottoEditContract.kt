@@ -7,7 +7,7 @@ import com.jdw.random_lotto.domain.lotto.model.LottoModel
 data class LottoEditState(
     val insertItems: List<LottoModel> = emptyList(),                // 추가된 항목들
     val deselectedKeysByType: Map<LottoType, Set<String>> =         // 선택 해제된 항목들의 키 맵
-        LottoType.entries.associateWith { emptySet<String>() },
+        LottoType.entries.associateWith { emptySet() },
     val isLoading: Boolean = false,                                 // 로딩 상태
     val error: String? = null                                       // 에러 메시지
 )

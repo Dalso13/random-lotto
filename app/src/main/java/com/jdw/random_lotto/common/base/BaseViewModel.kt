@@ -14,9 +14,9 @@ import kotlinx.coroutines.launch
 
 /**
  * MVI BaseViewModel
- * @property S: State type (immutable data class)
- * @property I: Intent type (sealed interface/class)
- * @property E: Effect type (일회성 이벤트들 Snackbar, Navigation)
+ * @property S: State type (immutable data class, UI에서 구독하는 상태)
+ * @property I: Intent type (sealed interface/class , UI에서 발생하는 모든 이벤트)
+ * @property E: Effect type (sealed interface/class , 일회성 이벤트들 Snackbar, Navigation)
  */
 abstract class BaseViewModel<S : Any, I : Any, E : Any>(
     initialState: S

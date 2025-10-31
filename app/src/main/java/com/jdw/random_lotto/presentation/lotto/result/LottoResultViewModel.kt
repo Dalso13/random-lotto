@@ -28,6 +28,8 @@ class LottoResultViewModel @Inject constructor(
 
     /**
      * 조회
+     * @param type - 로또 타입
+     * @param segment - 구간
      */
     private fun getLottoResult(type: LottoType, segment: Segment) {
         if (_state.value.standardWinningModel == null || _state.value.annuityWinningModel == null) {
