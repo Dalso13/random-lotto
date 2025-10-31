@@ -12,6 +12,12 @@ import com.jdw.random_lotto.data.lotto.winning.LottoWinningSource
 import com.jdw.random_lotto.data.lotto.winning.LottoWinningSourceImpl
 import com.jdw.random_lotto.domain.lotto.useCase.LottoAnnuityWinningUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.LottoAnnuityWinningUseCaseImpl
+import com.jdw.random_lotto.domain.lotto.useCase.LottoCheckUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.LottoCheckUseCaseImpl
+import com.jdw.random_lotto.domain.lotto.useCase.LottoEditUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.LottoEditUseCaseImpl
+import com.jdw.random_lotto.domain.lotto.useCase.LottoLoadUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.LottoLoadUseCaseImpl
 import com.jdw.random_lotto.domain.lotto.useCase.LottoSaveUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.LottoSaveUseCaseImpl
 import com.jdw.random_lotto.domain.lotto.useCase.LottoStandardWinningUseCase
@@ -90,5 +96,26 @@ abstract class UseCaseModule {
     abstract fun bindLottoSaveUseCase(
         impl: LottoSaveUseCaseImpl
     ): LottoSaveUseCase
+
+    // 복권 데이터 설정 usecase 바인딩
+    @Binds
+    @Singleton
+    abstract fun bindLottoEditUseCase(
+        impl: LottoEditUseCaseImpl
+    ): LottoEditUseCase
+
+    // 복권 데이터 조회 usecase 바인딩
+    @Binds
+    @Singleton
+    abstract fun bindLottoLoadUseCase(
+        impl: LottoLoadUseCaseImpl
+    ): LottoLoadUseCase
+
+    // 복권 데이터 당첨 여부 조회 usecase 바인딩
+    @Binds
+    @Singleton
+    abstract fun bindLottoCheckUseCase(
+        impl: LottoCheckUseCaseImpl
+    ): LottoCheckUseCase
 
 }

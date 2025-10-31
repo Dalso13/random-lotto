@@ -75,9 +75,19 @@ class LottoEditViewModel @Inject constructor(
      */
     private fun edit(type: LottoType) {
         // 타입에 따라 무작위 번호 생성 후 insertItems에 반영
-        val model = editUseCase.generate(type)
-        // 기본 선택: 해제 집합은 건드리지 않음
-        reduce { it.copy(insertItems = it.insertItems + model) }
+        val model = editUseCase(type)
+
+        when (model) {
+            is LottoResult.Success -> {
+                // 생성 성공
+                reduce { it.copy(insertItems = it.insertItems + model.value) }
+            }
+
+            is LottoResult.Fail -> {
+                // 생성 실패
+                emit(LottoEditEffect.ShowSnackbar("${type.title} 번호 생성 실패: ${model.message}"))
+            }
+        }
     }
 
     /**

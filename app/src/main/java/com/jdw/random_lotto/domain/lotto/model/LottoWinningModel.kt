@@ -22,12 +22,15 @@ data class StandardWinningModel (
     val bonus: Int
 )
 
+fun StandardWinningModel.winningNumbers(): List<Int> =
+    listOf(first, second, third, fourth, fifth, sixth)
+
 /**
  * 연금 복권 당첨 번호 저장 모델
  * @param round - 회차
  * @param date - 추첨 날짜 (yyyy-MM-dd)
  * @Param group - 조 (1~5)
- * @param first ~ fifth - 1등 번호 ~ 5등 번호
+ * @param first ~ sixth - 1등 번호 ~ 6등 번호
  */
 @Immutable
 data class AnnuityWinningModel (
@@ -38,5 +41,9 @@ data class AnnuityWinningModel (
     val second: Int,
     val third: Int,
     val fourth: Int,
-    val fifth: Int
+    val fifth: Int,
+    val sixth: Int
 )
+
+fun AnnuityWinningModel.winningNumbers(): List<Int> =
+    listOf(first, second, third, fourth, fifth, sixth)

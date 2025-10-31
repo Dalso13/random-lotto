@@ -1,15 +1,22 @@
 package com.jdw.random_lotto.domain.lotto.useCase
 
+import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.domain.core.useCase.BlockingResultUseCase
+import com.jdw.random_lotto.domain.core.useCase.BlockingUseCase
 import com.jdw.random_lotto.domain.lotto.model.LottoModel
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface LottoEditUseCase: BlockingUseCase<LottoType, LottoResult<LottoModel>>
+
+
 @Singleton
-class LottoEditUseCase @Inject constructor() {
-    fun generate(type: LottoType): LottoModel {
+class LottoEditUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoType,LottoModel>(), LottoEditUseCase {
+
+    override fun execute(params: LottoType): LottoResult<LottoModel> {
         // 로또 타입에 따라 무작위 번호 생성 및
-        val num = when (type) {
+        val num = when (params) {
             LottoType.STANDARD -> {
                 generateRandomStandardLottoNumber()
             }
@@ -18,10 +25,10 @@ class LottoEditUseCase @Inject constructor() {
             }
         }
 
-        return LottoModel(
+        return LottoResult.Success(LottoModel(
             number = num,
-            type = type
-        )
+            type = params
+        ))
     }
 
     /**

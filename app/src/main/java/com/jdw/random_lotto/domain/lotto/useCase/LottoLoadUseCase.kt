@@ -1,8 +1,13 @@
 package com.jdw.random_lotto.domain.lotto.useCase
 
+import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.Segment
 import com.jdw.random_lotto.data.lotto.db.LottoRepo
+import com.jdw.random_lotto.data.lotto.db.toModel
+import com.jdw.random_lotto.domain.core.useCase.BlockingResultUseCase
+import com.jdw.random_lotto.domain.core.useCase.BlockingUseCase
+import com.jdw.random_lotto.domain.lotto.model.LottoModel
 import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.ZoneId
@@ -10,16 +15,21 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface LottoLoadUseCase: BlockingUseCase<Pair<LottoType, Segment>, LottoResult<List<LottoModel>>>
+
 @Singleton
-class LottoLoadUseCase @Inject constructor(
+class LottoLoadUseCaseImpl @Inject constructor(
     private val repo: LottoRepo
-) {
+): BlockingResultUseCase<Pair<LottoType, Segment>, List<LottoModel>>(), LottoLoadUseCase {
 
-    // 조회
-    fun load(type: LottoType, segment: Segment) {
-        val (start, end) = calculateLottoDate(type, segment)
+    override fun execute(params: Pair<LottoType, Segment>): LottoResult<List<LottoModel>> {
+        val (start, end) = calculateLottoDate(params.first, params.second)
 
-        val list = repo.load(type, start, end)
+        val list = repo.load(params.first, start, end)
+
+        return LottoResult.Success(list.map { entity ->
+            entity.toModel()
+        })
     }
 
     /**
@@ -29,7 +39,7 @@ class LottoLoadUseCase @Inject constructor(
      * @param now 현재 시각 (기본값: 시스템 시각, KST)
      * @return Pair<시작 일시(밀리초), 종료 일시(밀리초)>
      */
-    fun calculateLottoDate(
+    private fun calculateLottoDate(
         type: LottoType,
         segment: Segment,
         now: ZonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
@@ -56,8 +66,4 @@ class LottoLoadUseCase @Inject constructor(
 
         return startAnchor.toInstant().toEpochMilli() to endAnchor.toInstant().toEpochMilli()
     }
-
-    /**
-     * 로또 당첨번호 계산
-     */
 }

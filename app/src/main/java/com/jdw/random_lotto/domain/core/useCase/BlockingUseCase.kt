@@ -11,10 +11,11 @@ abstract class BlockingResultUseCase<P, R> :
     BlockingUseCase<P, LottoResult<R>> {
 
     final override operator fun invoke(params: P): LottoResult<R> = try {
-        LottoResult.Success(execute(params))
+        execute(params)
     } catch (t: Throwable) {
         LottoResult.Fail(t.message ?: "Unknown error", t)
     }
 
-    protected abstract fun execute(params: P): R
+
+    protected abstract fun execute(params: P): LottoResult<R>
 }
