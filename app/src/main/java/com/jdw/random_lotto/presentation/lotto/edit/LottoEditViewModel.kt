@@ -1,20 +1,13 @@
 package com.jdw.random_lotto.presentation.lotto.edit
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.jdw.random_lotto.common.base.BaseViewModel
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.data.lotto.db.toEntity
 import com.jdw.random_lotto.domain.lotto.useCase.LottoEditUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.LottoSaveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,18 +16,12 @@ import javax.inject.Inject
 class LottoEditViewModel @Inject constructor(
     private val saveUseCase: LottoSaveUseCase,
     private val editUseCase: LottoEditUseCase
-) : ViewModel() {
-
-    // State
-    private val _state = MutableStateFlow(LottoEditState())
-    val state: StateFlow<LottoEditState> = _state.asStateFlow()
-
-    // Effect
-    private val _effect = MutableSharedFlow<LottoEditEffect>()
-    val effect: SharedFlow<LottoEditEffect> = _effect.asSharedFlow()
+) : BaseViewModel<LottoEditState, LottoEditIntent, LottoEditEffect>(
+    initialState = LottoEditState()
+) {
 
     // Intent 처리
-    fun dispatch(intent: LottoEditIntent) {
+    override suspend fun handleIntent(intent: LottoEditIntent) {
         when (intent) {
             is LottoEditIntent.SelectAll -> selectAll(intent.type, intent.keys)
             is LottoEditIntent.ToggleSelect -> toggleSelect(intent.type, intent.keys)
@@ -85,7 +72,7 @@ class LottoEditViewModel @Inject constructor(
 
             is LottoResult.Fail -> {
                 // 생성 실패
-                emit(LottoEditEffect.ShowSnackbar("${type.title} 번호 생성 실패: ${model.message}"))
+                viewModelScope.launch { emit(LottoEditEffect.ShowSnackbar("${type.title} 번호 생성 실패: ${model.message}")) }
             }
         }
     }
@@ -121,10 +108,4 @@ class LottoEditViewModel @Inject constructor(
             }
         }
     }
-
-    // 상태 변경 함수
-    private inline fun reduce(block: (LottoEditState) -> LottoEditState) = _state.update(block)
-
-    // 효과 발생 함수
-    private fun emit(e: LottoEditEffect) { viewModelScope.launch { _effect.emit(e) } }
 }
