@@ -18,9 +18,17 @@ data class LottoResultState(
 // intent (동작)
 sealed interface LottoResultIntent {
     data class Load(val type: LottoType, val segment: Segment) : LottoResultIntent              // 로드 (DB에서 불러오기)
+    data object reInit : LottoResultIntent                                                      // 재초기화
 }
 
 // ui effect (일회성 이벤트)
 sealed interface LottoResultEffect {
     data class ShowSnackbar(val message: String) : LottoResultEffect      // 스낵바 표시
+    data class ShowDialog(
+        val message: String,
+        val confirmText: String?,
+        val cancelText: String?,
+        val confirmIntent: LottoResultIntent?,
+        val cancelIntent: LottoResultIntent?
+    ) : LottoResultEffect                                                 // 다이얼로그 표시
 }

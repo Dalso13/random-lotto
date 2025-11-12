@@ -14,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +32,7 @@ import com.jdw.random_lotto.presentation.lotto.result.components.WinningSet
 // 결과 화면 ----------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LottoResultScreen(selectedTab: LottoType) {
+fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
     val cs = MaterialTheme.colorScheme
     val tp = MaterialTheme.typography
 
@@ -56,6 +57,22 @@ fun LottoResultScreen(selectedTab: LottoType) {
             filtered.sortedByDescending { it.result?.score ?: -1 }
         }
         list
+    }
+
+    LaunchedEffect(selectedTab) {
+        // 탭 변경 시 데이터 로드
+        if (vm.state.value.standardWinningModel != null &&
+            vm.state.value.annuityWinningModel != null) {
+            vm.dispatch(LottoResultIntent.Load(selectedTab, segment))
+        }
+    }
+
+    LaunchedEffect(segment) {
+        // 세그먼트 변경 시 데이터 로드
+        if (vm.state.value.standardWinningModel != null &&
+            vm.state.value.annuityWinningModel != null) {
+            vm.dispatch(LottoResultIntent.Load(selectedTab, segment))
+        }
     }
 
     // UI -----------------------------------------------------------------

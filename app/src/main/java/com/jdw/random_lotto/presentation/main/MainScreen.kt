@@ -22,12 +22,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.BottomMode
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditScreen
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditViewModel
 import com.jdw.random_lotto.presentation.lotto.result.LottoResultScreen
+import com.jdw.random_lotto.presentation.lotto.result.LottoResultViewModel
 import com.jdw.random_lotto.presentation.main.components.MainBottomBar
 import com.jdw.random_lotto.presentation.main.components.MainTopBar
 import kotlinx.coroutines.launch
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     mainVm: MainViewModel = hiltViewModel(),
     lottoEditVm: LottoEditViewModel = hiltViewModel(),
+    lottoResultVm: LottoResultViewModel = hiltViewModel(),
     onNavigate: (String) -> Unit = {}
 ) {
     val cs = MaterialTheme.colorScheme
@@ -122,7 +124,7 @@ fun MainScreen(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (state.tabs[page]) {
-                    BottomMode.VIEW -> LottoResultScreen(state.selectedTopTab)
+                    BottomMode.VIEW -> LottoResultScreen(state.selectedTopTab, lottoResultVm)
                     BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm)
                 }
             }
