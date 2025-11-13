@@ -51,6 +51,13 @@ fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        // 최초 진입 시 데이터 로드
+        if (state.isTryInit && (vm.state.value.standardWinningModel == null || vm.state.value.annuityWinningModel == null)) {
+            vm.dispatch(LottoResultIntent.reInit)
+        }
+    }
+
     LaunchedEffect(selectedTab) {
         // 탭 변경 시 데이터 로드
         if (vm.state.value.standardWinningModel != null &&

@@ -34,6 +34,9 @@ class LottoResultViewModel @Inject constructor(
         // 초기화 시 당첨 정보 조회
         viewModelScope.launch {
             getLottoWinningData()
+
+            // 최초 초기화 완료
+            reduce { it.copy(isTryInit = true) }
         }
     }
 
