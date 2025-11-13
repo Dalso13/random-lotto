@@ -84,7 +84,7 @@ fun MainScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("복권") },
+                title = { Text("로또") },
                 actions = {
                     IconButton(
                         onClick = { mainVm.dispatch(MainIntent.MenuExpanded(true)) },

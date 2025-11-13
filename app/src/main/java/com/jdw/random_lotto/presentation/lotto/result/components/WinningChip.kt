@@ -7,11 +7,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.jdw.random_lotto.presentation.lotto.result.model.WinningUi
 import com.jdw.random_lotto.presentation.common.components.CapsuleChip
 import com.jdw.random_lotto.presentation.common.components.NumberCapsule
 import com.jdw.random_lotto.presentation.common.components.NumbersFlow
 import com.jdw.random_lotto.presentation.common.components.rememberCapsuleStyle
+import com.jdw.random_lotto.presentation.lotto.result.model.WinningUi
 
 @Composable
 fun WinningChips(winning: WinningUi) {
@@ -24,7 +24,7 @@ fun WinningChips(winning: WinningUi) {
         winning.annuityGroup?.let { g ->
             CapsuleChip(
                 text = "조 $g",
-                style = rememberCapsuleStyle(emphasis = true)
+                style = rememberCapsuleStyle(isSpecial = true)
             )
         }
 
@@ -32,13 +32,13 @@ fun WinningChips(winning: WinningUi) {
         NumbersFlow(
             numbers = winning.main,
             emphasisAll = true,
-            isBonus = { false }
+            isSpecial = { false }
         )
 
         // 6/45 보너스 번호
         winning.bonus?.let { b ->
             Text("＋", color = cs.onSurfaceVariant)
-            NumberCapsule(number = b, isBonus = true)
+            NumberCapsule(number = b, isSpecial = true)
         }
     }
 }

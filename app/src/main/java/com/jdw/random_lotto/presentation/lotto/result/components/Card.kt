@@ -103,7 +103,7 @@ fun TicketCard(
                     numbers = digits,
                     matched = evalUi.matched,
                     emphasisAll = false,
-                    isBonus = { false },
+                    isSpecial = { false },
                     maxItemsInEachRow = 6
                 )
             }

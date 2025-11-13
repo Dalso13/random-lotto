@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
  * @param modifier - Modifier
  * @param matched - 일치하는 번호 집합 (강조용)
  * @param emphasisAll - 모든 번호 강조
- * @param isBonus - 보너스 번호 여부 판단 람다 (보너스는 강조 색상 다름)
+ * @param isSpecial - 특별한 번호 여부 판정 함수 (보너스 등)
  * @param selected - 선택 상태 (선택된 항목 강조)
  * @param maxItemsInEachRow - 한 행에 표시할 최대 아이템 수
  */
@@ -34,7 +34,7 @@ fun NumbersFlow(
     modifier: Modifier = Modifier,
     matched: Set<Int> = emptySet(),
     emphasisAll: Boolean = false,
-    isBonus: ((Int) -> Boolean)? = null,
+    isSpecial: ((Int) -> Boolean)? = null,
     selected: Boolean = false,
     maxItemsInEachRow: Int = 6,
 ) {
@@ -49,7 +49,7 @@ fun NumbersFlow(
                 number = n,
                 emphasis = emphasisAll,
                 matched = n in matched,
-                isBonus = isBonus?.invoke(n) == true,
+                isSpecial = isSpecial?.invoke(n) == true,
                 selected = selected
             )
         }
@@ -90,7 +90,7 @@ fun CapsuleChip(
  * @param number - 표시할 숫자
  * @param emphasis - 당첨번호/헤더 강조
  * @param matched - 일치 번호 강조
- * @param isBonus - 보너스 번호 여부
+ * @param isSpecial - 특별한 번호 여부 (보너스 등)
  * @param selected - 선택 상태 (선택된 항목 강조)
  */
 @Composable
@@ -98,11 +98,11 @@ fun NumberCapsule(
     number: Int,
     emphasis: Boolean = false,
     matched: Boolean = false,
-    isBonus: Boolean = false,
+    isSpecial: Boolean = false,
     selected: Boolean = false
 ) {
     val style = rememberCapsuleStyle(
-        emphasis = emphasis, matched = matched, isBonus = isBonus, selected = selected
+        emphasis = emphasis, matched = matched, isSpecial = isSpecial, selected = selected
     )
     CapsuleChip(
         text = "%02d".format(number),
@@ -128,33 +128,33 @@ data class CapsuleStyle(
  * 캡슐 스타일 기억
  * @param emphasis - 당첨번호/헤더 강조
  * @param matched - 일치 번호 강조
- * @param isBonus - 보너스 번호
+ * @param isSpecial - 특별한 번호 여부 (보너스 등)
  * @param selected - 리스트 선택 상태
  */
 @Composable
 fun rememberCapsuleStyle(
     emphasis: Boolean = false,
     matched: Boolean = false,
-    isBonus: Boolean = false,
+    isSpecial: Boolean = false,
     selected: Boolean = false
 ): CapsuleStyle {
     val cs = MaterialTheme.colorScheme
     val container = when {
         matched -> cs.primary
-        isBonus -> cs.tertiaryContainer
+        isSpecial -> cs.tertiary
         emphasis -> cs.primary
         selected -> cs.background.copy(alpha = .7f)
         else -> cs.surfaceVariant.copy(alpha = .7f)
     }
     val content = when {
         matched || emphasis -> cs.onPrimary
-        isBonus -> cs.onTertiaryContainer
         selected -> cs.onBackground
+        isSpecial -> cs.onPrimary
         else -> cs.onSurfaceVariant
     }
     val border = when {
         matched -> cs.primary
-        isBonus -> cs.tertiary
+        isSpecial -> cs.tertiary
         selected -> cs.primary.copy(.25f)
         emphasis -> cs.primary.copy(.35f)
         else -> cs.outline.copy(.4f)

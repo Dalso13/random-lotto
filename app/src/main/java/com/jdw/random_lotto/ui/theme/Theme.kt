@@ -35,51 +35,50 @@ val AppTypography = Typography(
     labelLarge = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Medium, fontSize = 14.sp)
 )
 
-// Brand tokens
-val BrandSelected = Color(0xFF006FFD)
-val BrandUnselectedLight = Color(0xFFEAF2FF)
-val BrandUnselectedDark = Color(0xFF153454) // 어두운 배경에서 비선택 칩용
-
 private val LightColorScheme = lightColorScheme(
-    primary = BrandSelected,           // 버튼/강조(선택) 배경
-    onPrimary = Color.White,           // 선택 위 텍스트
-    primaryContainer = BrandUnselectedLight, // 비선택 배경 칩/탭 등에 활용
-    onPrimaryContainer = Color(0xFF083266),  // 비선택 위 텍스트(딥 블루)
-
-    background = Color.White,
-    surface = Color.White,
-    onBackground = Color(0xFF0D141B),
-    onSurface = Color(0xFF0D141B),
-
-    secondary = Color(0xFF295EA6),
-    onSecondary = Color.White,
-    tertiary = Color(0xFF0061A8),
-    onTertiary = Color.White,
-
-    surfaceVariant = Color(0xFFF2F5FA),
-    outline = Color(0xFFCBD6E6)
-)
-
-// Dark scheme: primary는 동일(또는 살짝 톤다운), container는 어두운 블루
-private val DarkColorScheme = darkColorScheme(
-    primary = BrandSelected,           // 다크에서도 선택은 선명하게
+    primary = BrandSelected,
     onPrimary = Color.White,
-    primaryContainer = BrandUnselectedDark, // 다크 비선택 칩/탭 배경
-    onPrimaryContainer = Color(0xFFBBD6FF),
+    primaryContainer = BrandUnselectedLight,
+    onPrimaryContainer = OnPrimaryContainerLight,
 
-    background = Color(0xFF121212),
-    surface = Color(0xFF1A1A1A),
-    onBackground = Color(0xFFEFEFEF),
-    onSurface = Color(0xFFEFEFEF),
+    background = BackgroundLight,
+    surface = SurfaceLight,
+    onBackground = OnBackgroundLight,
+    onSurface = OnSurfaceLight,
 
-    secondary = Color(0xFF7BA7FF),
-    onSecondary = Color(0xFF0C1A2A),
-    tertiary = Color(0xFF62A4FF),
-    onTertiary = Color(0xFF0C1A2A),
+    secondary = SecondaryLight,
+    onSecondary = OnSecondaryLight,
 
-    surfaceVariant = Color(0xFF202631),
-    outline = Color(0xFF3B4A61)
+    // 민트 적용
+    tertiary = TertiaryMintLight,
+    onTertiary = OnTertiaryMintLight,
+
+    surfaceVariant = SurfaceVariantLight,
+    outline = OutlineLight
 )
+
+private val DarkColorScheme = darkColorScheme(
+    primary = BrandSelected,
+    onPrimary = Color.White,
+    primaryContainer = BrandUnselectedDark,
+    onPrimaryContainer = OnPrimaryContainerDark,
+
+    background = BackgroundDark,
+    surface = SurfaceDark,
+    onBackground = OnBackgroundDark,
+    onSurface = OnSurfaceDark,
+
+    secondary = SecondaryDark,
+    onSecondary = OnSecondaryDark,
+
+    // 민트 적용
+    tertiary = TertiaryMintDark,
+    onTertiary = OnTertiaryMintDark,
+
+    surfaceVariant = SurfaceVariantDark,
+    outline = OutlineDark
+)
+
 @Composable
 fun Random_lottoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
