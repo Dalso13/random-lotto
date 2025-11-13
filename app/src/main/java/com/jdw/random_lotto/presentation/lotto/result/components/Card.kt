@@ -13,38 +13,46 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jdw.random_lotto.common.util.LottoType
-import com.jdw.random_lotto.presentation.lotto.result.TicketResult
-import com.jdw.random_lotto.presentation.main.components.CapsuleChip
-import com.jdw.random_lotto.presentation.main.components.NumbersFlow
-import com.jdw.random_lotto.presentation.main.components.rememberCapsuleStyle
-
-data class MyTicket(
-    val id: String,
-    val title: String,
-    val savedAt: String,
-    val numbers: List<Int>,        // 6개 (연금복권은 조+번호 형태면 넘겨줄 때 가공)
-    val annuityGroup: Int? = null,
-)
+import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
+import com.jdw.random_lotto.presentation.lotto.result.model.EvalBadge
+import com.jdw.random_lotto.presentation.lotto.result.model.toEvalUi
+import com.jdw.random_lotto.presentation.common.components.CapsuleChip
+import com.jdw.random_lotto.presentation.common.components.NumbersFlow
+import com.jdw.random_lotto.presentation.common.components.rememberCapsuleStyle
 
 @Composable
 fun TicketCard(
     type: LottoType,
-    ticket: MyTicket,
-    result: TicketResult?
+    item: LottoResultModel
 ) {
     val cs = MaterialTheme.colorScheme
     val tp = MaterialTheme.typography
 
-    val matchedNums = result?.matched ?: emptySet()
-    val isWin = result?.rank != null
+    // 표시용 날짜
+    val savedAt = remember(item.createdAt) { item.createdAt.toMmDd() }
+
+    // 연금 복권 숫자/조 파싱 (numbers 첫값이 조일 수도/아닐 수도 있다고 가정)
+    val (annuityGroup, digits) = remember(type, item.number) {
+        if (type == LottoType.ANNUITY) {
+            // 규칙:
+            // - 7개면 [조, d1..d6]
+            // - 6개면 조 없음
+            if (item.number.size >= 7) {
+                item.number.first() to item.number.drop(1)
+            } else null to item.number
+        } else null to item.number
+    }
+
+    // 평가(Evaluation) → UI 매핑
+    val evalUi = remember(item) { item.toEvalUi() }
+
+    val isWin = evalUi.rank != null
 
     Surface(
         shape = RoundedCornerShape(14.dp),
@@ -59,54 +67,57 @@ fun TicketCard(
             // 상단 타이틀/메모
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    result?.rankText ?: "",
-                    style = tp.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                    evalUi.rankText,
+                    style = tp.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = when (evalUi.badge) {
+                        EvalBadge.WIN -> cs.primary
+                        EvalBadge.LOSE -> cs.onSurface
+                        EvalBadge.PENDING -> cs.secondary
+                        EvalBadge.UNCHECKED -> cs.onSurfaceVariant
+                    }
                 )
                 Spacer(Modifier.weight(1f))
-                Text(ticket.savedAt, style = tp.labelMedium, color = cs.onSurfaceVariant)
+                Text(savedAt, style = tp.labelMedium, color = cs.onSurfaceVariant)
             }
 
             Spacer(Modifier.height(10.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (type == LottoType.ANNUITY) {
-                    val group = ticket.annuityGroup ?: 0
+                if (type == LottoType.ANNUITY && annuityGroup != null) {
                     CapsuleChip(
-                        text = "조 $group",
-                        style = rememberCapsuleStyle(emphasis = false) // 필요 시 강조 true
+                        text = "조 $annuityGroup",
+                        style = rememberCapsuleStyle(emphasis = false)
                     )
                     Spacer(Modifier.width(12.dp))
                 }
 
-// digits: 연금이면 첫 자리(조) 제외, 아니면 그대로
-                val digits by remember(ticket.numbers, type) {
-                    mutableStateOf(
-                        if (type == LottoType.ANNUITY) ticket.numbers.drop(1) else ticket.numbers
-                    )
-                }
-
-// 공통 숫자 나열 유틸 사용
+                // 일치 숫자 강조(지난 회차에서만 의미가 있을 수 있지만, 평가가 Win/Lose면 항상 표시 안전)
                 NumbersFlow(
                     numbers = digits,
-                    matched = matchedNums,          // 지난 회차 매칭 강조용
-                    emphasisAll = false,            // 당첨번호 강조 아님(개별 매칭만 강조)
-                    isBonus = { false },            // 필요 시 보너스 기준 넣기
+                    matched = evalUi.matched,
+                    emphasisAll = false,
+                    isBonus = { false },
                     maxItemsInEachRow = 6
                 )
-
             }
 
             // 결과 요약
-            result?.let { safe ->
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    safe.summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (safe.rank != null) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
+            Spacer(Modifier.height(8.dp))
+            Text(
+                evalUi.summary,
+                style = tp.bodyMedium,
+                color = when (evalUi.badge) {
+                    EvalBadge.WIN -> cs.primary
+                    EvalBadge.LOSE -> cs.onSurfaceVariant
+                    EvalBadge.PENDING -> cs.onSurfaceVariant
+                    EvalBadge.UNCHECKED -> cs.onSurfaceVariant
+                }
+            )
         }
     }
 }
+
+private fun Long.toMmDd(): String = java.time.Instant.ofEpochMilli(this)
+    .atZone(java.time.ZoneId.systemDefault())
+    .toLocalDate()
+    .let { "%02d/%02d".format(it.monthValue, it.dayOfMonth) }

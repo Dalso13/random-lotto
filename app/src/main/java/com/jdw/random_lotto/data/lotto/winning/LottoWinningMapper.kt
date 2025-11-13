@@ -33,6 +33,7 @@ fun AnnuityWinningDto.toModel(): AnnuityWinningModel? {
         third = list.getOrNull(2)?.toIntOrNull() ?: return null,
         fourth = list.getOrNull(3)?.toIntOrNull() ?: return null,
         fifth = list.getOrNull(4)?.toIntOrNull() ?: return null,
+        sixth = list.getOrNull(5)?.toIntOrNull() ?: return null,
         group = rows2?.firstOrNull()?.rankClass?.toIntOrNull() ?: return null
     )
 }

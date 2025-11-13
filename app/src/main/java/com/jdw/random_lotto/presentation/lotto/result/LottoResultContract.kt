@@ -10,7 +10,7 @@ import com.jdw.random_lotto.domain.lotto.model.StandardWinningModel
 data class LottoResultState(
     val standardWinningModel: StandardWinningModel? = null,         // 6/45 당첨 모델
     val annuityWinningModel: AnnuityWinningModel? = null,           // 연금 복권 당첨 모델
-    val resultItems: List<LottoResultModel> = emptyList(),          // 조회된 로또모델 리스트
+    val resultItems: List<LottoResultModel> = emptyList(),          // 조회된 로또 당첨여부 모델 리스트
     val isLoading: Boolean = false,                                 // 로딩 상태
     val error: String? = null                                       // 에러 메시지
 )

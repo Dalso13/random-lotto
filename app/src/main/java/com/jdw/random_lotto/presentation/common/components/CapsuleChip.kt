@@ -1,4 +1,4 @@
-package com.jdw.random_lotto.presentation.main.components
+package com.jdw.random_lotto.presentation.common.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

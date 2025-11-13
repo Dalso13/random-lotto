@@ -25,9 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.domain.lotto.model.LottoModel
-import com.jdw.random_lotto.presentation.main.components.CapsuleChip
-import com.jdw.random_lotto.presentation.main.components.NumbersFlow
-import com.jdw.random_lotto.presentation.main.components.rememberCapsuleStyle
+import com.jdw.random_lotto.presentation.common.components.CapsuleChip
+import com.jdw.random_lotto.presentation.common.components.NumbersFlow
+import com.jdw.random_lotto.presentation.common.components.rememberCapsuleStyle
 
 /**
  * 리스트 아이템

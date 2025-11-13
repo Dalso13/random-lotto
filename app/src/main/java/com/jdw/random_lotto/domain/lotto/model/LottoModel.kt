@@ -22,15 +22,11 @@ data class LottoModel(
 
 // LottoModel을 LottoResultModel로 변환하는 확장 함수
 fun LottoModel.toResult(
-    isWinning: Boolean,
-    winningRate: Int?,
-    winningRateIndex: List<Int>?
+    evaluation: Evaluation = Evaluation.Unchecked
 ) = LottoResultModel(
     id = id,
     number = number,
     type = type,
     createdAt = createdAt,
-    isWinning = isWinning,
-    winningRate = winningRate,
-    winningRateIndex = winningRateIndex
+    evaluation = evaluation
 )

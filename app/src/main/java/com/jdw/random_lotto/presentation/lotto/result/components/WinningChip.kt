@@ -7,41 +7,35 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.jdw.random_lotto.common.util.LottoType
-import com.jdw.random_lotto.presentation.main.components.CapsuleChip
-import com.jdw.random_lotto.presentation.main.components.NumberCapsule
-import com.jdw.random_lotto.presentation.main.components.NumbersFlow
-import com.jdw.random_lotto.presentation.main.components.rememberCapsuleStyle
-
-data class WinningSet(
-    val round: Int,
-    val drawDate: String,          // "10/12" 등
-    val main: List<Int>,           // 6개(6/42), 연금복권은 필요 수만
-    val bonus: Int? = null,        // 6/42 보너스
-    val annuityGroup: Int? = null  // 연금복권 '조'
-)
+import com.jdw.random_lotto.presentation.lotto.result.model.WinningUi
+import com.jdw.random_lotto.presentation.common.components.CapsuleChip
+import com.jdw.random_lotto.presentation.common.components.NumberCapsule
+import com.jdw.random_lotto.presentation.common.components.NumbersFlow
+import com.jdw.random_lotto.presentation.common.components.rememberCapsuleStyle
 
 @Composable
-fun WinningChips(winning: WinningSet, selectedTab: LottoType) {
+fun WinningChips(winning: WinningUi) {
     val cs = MaterialTheme.colorScheme
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        if (selectedTab == LottoType.ANNUITY) {
-            // 조 배지 → 공통 CapsuleChip 사용
+        // 연금복권이면 조 배지 노출 (값 있을 때만)
+        winning.annuityGroup?.let { g ->
             CapsuleChip(
-                text = "조 ${winning.annuityGroup ?: 1}",
+                text = "조 $g",
                 style = rememberCapsuleStyle(emphasis = true)
             )
         }
 
+        // 메인 당첨번호
         NumbersFlow(
             numbers = winning.main,
-            emphasisAll = true,               // 당첨번호 메인 강조
-            isBonus = { false }               // 메인에서는 보너스 없음
+            emphasisAll = true,
+            isBonus = { false }
         )
 
+        // 6/45 보너스 번호
         winning.bonus?.let { b ->
             Text("＋", color = cs.onSurfaceVariant)
             NumberCapsule(number = b, isBonus = true)

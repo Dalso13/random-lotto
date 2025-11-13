@@ -36,7 +36,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.Segment
-import com.jdw.random_lotto.presentation.lotto.result.ResultDummy
+import com.jdw.random_lotto.presentation.lotto.result.LottoResultState
+import com.jdw.random_lotto.presentation.lotto.result.model.WinningUi
+import com.jdw.random_lotto.presentation.lotto.result.model.toWinningUi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +46,7 @@ fun RoundHeader(
     segment: Segment,
     onSelectSegment: (Segment) -> Unit,
     selectedTab: LottoType,
-    dummy: ResultDummy,
+    state: LottoResultState,
 ) {
     val cs = MaterialTheme.colorScheme
 
@@ -53,7 +55,7 @@ fun RoundHeader(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        // Segmented (M3 공식)
+        // Segmented
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = segment == Segment.LAST,
@@ -77,34 +79,44 @@ fun RoundHeader(
 
         Spacer(Modifier.height(12.dp))
 
-        // 회차/상태 요약(부드러운 전환)
+        // 회차/상태 요약
         AnimatedContent(
             targetState = segment,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             label = "header-anim"
         ) { seg ->
             if (seg == Segment.LAST) {
-                LastRoundHeader(
-                    winning = dummy.winning,
-                    selectedTab = selectedTab
-                )
+                when (selectedTab) {
+                    LottoType.STANDARD -> {
+                        state.standardWinningModel?.let {
+                            LastRoundHeader(
+                                winning = it.toWinningUi(), // 아래 어댑터
+                            )
+                        } ?: EmptyHeader("6/45 당첨 번호가 없습니다")
+                    }
+                    LottoType.ANNUITY -> {
+                        state.annuityWinningModel?.let {
+                            LastRoundHeader(
+                                winning = it.toWinningUi(),
+                            )
+                        } ?: EmptyHeader("연금 복권 당첨 번호가 없습니다")
+                    }
+                }
             } else {
-                CurrentRoundHeader(nextDateText = dummy.nextDrawText)
+                CurrentRoundHeader(nextDateText = nextDrawHint(selectedTab))
             }
         }
 
         Spacer(Modifier.height(8.dp))
-
-        // 부드러운 구분선
         Divider(color = cs.outlineVariant.copy(alpha = 0.5f), thickness = 0.5.dp)
     }
 }
 
 
+
 @Composable
 fun LastRoundHeader(
-    winning: WinningSet,
-    selectedTab: LottoType,
+    winning: WinningUi,
     modifier: Modifier = Modifier
 ) {
     val cs = MaterialTheme.colorScheme
@@ -119,7 +131,7 @@ fun LastRoundHeader(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            HeaderIcon( // 작게 둥근 배경 위 아이콘
+            HeaderIcon(
                 icon = { Icon(Icons.Filled.Info, contentDescription = null, tint = cs.primary) },
                 bg = cs.primary.copy(alpha = 0.08f)
             )
@@ -132,24 +144,23 @@ fun LastRoundHeader(
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = winning.drawDate, // 예: 10/12
+                    text = winning.drawDate, // yyyy-MM-dd (원본 유지)
                     style = tp.labelMedium,
                     color = cs.onSurfaceVariant
                 )
             }
-            // 우측에 간결한 보조 정보(개수/보너스 여부)
             val sub = buildString {
                 append("${winning.main.size}개")
                 if (winning.bonus != null) append(" + 보너스")
+                if (winning.annuityGroup != null) append(" · 조 ${winning.annuityGroup}")
             }
             SubtlePill(text = sub)
         }
 
         Spacer(Modifier.height(10.dp))
-
-        // 당첨번호 칩 묶음 (기존 함수 그대로 사용)
-        WinningChips(winning = winning, selectedTab = selectedTab)
-
+        WinningChips(
+            winning = winning,
+        )
         Spacer(Modifier.height(6.dp))
         DividerSoft()
     }
@@ -187,6 +198,16 @@ fun CurrentRoundHeader(
         }
         SubtlePill(text = "예정")
     }
+}
+
+@Composable
+private fun EmptyHeader(msg: String) {
+    val cs = MaterialTheme.colorScheme
+    Text(
+        text = msg,
+        color = cs.onSurfaceVariant,
+        style = MaterialTheme.typography.labelMedium
+    )
 }
 
 /* ---------- 작은 유틸 컴포넌트들 ---------- */
@@ -235,4 +256,9 @@ private fun DividerSoft() {
             .height(1.dp)
             .background(cs.outline.copy(alpha = 0.12f))
     )
+}
+
+private fun nextDrawHint(tab: LottoType): String = when (tab) {
+    LottoType.STANDARD -> "토 20:45"   // 6/45
+    LottoType.ANNUITY  -> "목 19:05"   // 연금
 }

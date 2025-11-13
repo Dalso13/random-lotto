@@ -99,6 +99,7 @@ class LottoResultViewModel @Inject constructor(
                     LottoCheckParams(
                         type = type,
                         lottoModels = list.value,
+                        segment = segment,
                         standardWinningModel = _state.value.standardWinningModel!!,
                         annuityWinningModel = _state.value.annuityWinningModel!!
                     )

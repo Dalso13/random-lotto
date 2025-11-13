@@ -2,9 +2,11 @@ package com.jdw.random_lotto.domain.lotto.useCase
 
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.common.util.Segment
 import com.jdw.random_lotto.domain.core.useCase.BlockingResultUseCase
 import com.jdw.random_lotto.domain.core.useCase.BlockingUseCase
 import com.jdw.random_lotto.domain.lotto.model.AnnuityWinningModel
+import com.jdw.random_lotto.domain.lotto.model.Evaluation
 import com.jdw.random_lotto.domain.lotto.model.LottoModel
 import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
 import com.jdw.random_lotto.domain.lotto.model.StandardWinningModel
@@ -15,6 +17,7 @@ import javax.inject.Inject
 data class LottoCheckParams(
     val type: LottoType,
     val lottoModels: List<LottoModel>,
+    val segment: Segment,
     val standardWinningModel: StandardWinningModel,
     val annuityWinningModel: AnnuityWinningModel
 )
@@ -25,7 +28,7 @@ interface LottoCheckUseCase: BlockingUseCase<LottoCheckParams, LottoResult<List<
 class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoCheckParams, List<LottoResultModel>>(), LottoCheckUseCase {
 
     override fun execute(params: LottoCheckParams): LottoResult<List<LottoResultModel>> {
-        val (type, lottoModels, standardWinningModel, annuityWinningModel) = params
+        val (type, lottoModels, segment ,standardWinningModel, annuityWinningModel) = params
 
         when (type) {
             LottoType.STANDARD -> {
@@ -71,12 +74,20 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
             // 등수 결정
             val rank = determineRank(matchCount, hasBonus)
 
-            // 결과 변환
-            ticket.toResult(
-                isWinning = rank != null,
-                winningRate = rank,
-                winningRateIndex = rank?.let { matchIndices }
-            )
+            if (rank != null) {
+                // 당첨
+                ticket.toResult(
+                    evaluation = Evaluation.Win(
+                        rank = rank,
+                        matchIndices = matchIndices
+                    )
+                )
+            } else {
+                // 낙첨
+                ticket.toResult(
+                    evaluation = Evaluation.Lose
+                )
+            }
         }
     }
 
@@ -129,9 +140,7 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
 
             if (!valid) {
                 return@map ticket.toResult(
-                    isWinning = false,
-                    winningRate = null,
-                    winningRateIndex = null
+                    evaluation = Evaluation.Unchecked
                 )
             }
 
@@ -140,11 +149,19 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
 
             val rank = determineAnnuityRank(tGroup, tDigits, winGroup, winDigits)
 
-            ticket.toResult(
-                isWinning = rank != null,
-                winningRate = rank,                       // 1~7
-                winningRateIndex = matchedIndicesForAnnuity(rank)
-            )
+            if (rank == null) {
+                // 낙첨
+                ticket.toResult(
+                    evaluation = Evaluation.Lose
+                )
+            } else {
+                ticket.toResult(
+                    evaluation = Evaluation.Win(
+                        rank = rank,
+                        matchIndices = matchedIndicesForAnnuity(rank) ?: emptyList()
+                    )
+                )
+            }
         }
     }
 
