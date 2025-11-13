@@ -8,7 +8,7 @@ import com.jdw.random_lotto.domain.lotto.model.StandardWinningModel
 // dto -> model 변환 함수
 fun StandardWinningDto.toModel(): StandardWinningModel? {
     return StandardWinningModel(
-        round = drawNo ?: return null,
+        round = drwNo ?: return null,
         date = drwNoDate ?: "",
         first = drwtNo1 ?: return null,
         second = drwtNo2 ?: return null,

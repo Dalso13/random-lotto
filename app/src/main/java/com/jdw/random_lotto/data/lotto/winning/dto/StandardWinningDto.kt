@@ -25,7 +25,7 @@ data class StandardWinningDto(
     val firstWinamnt: Long?,
     val firstPrzwnerCo: Int?,
     val firstAccumamnt: Long?,
-    val drawNo: Int?,
+    val drwNo: Int?,
     val drwtNo1: Int?,
     val drwtNo2: Int?,
     val drwtNo3: Int?,

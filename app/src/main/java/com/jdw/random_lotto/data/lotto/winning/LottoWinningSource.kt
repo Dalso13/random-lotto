@@ -6,6 +6,7 @@ import com.jdw.random_lotto.data.lotto.winning.dto.AnnuityWinningDto
 import com.jdw.random_lotto.data.lotto.winning.dto.StandardWinningDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -62,6 +63,7 @@ class LottoWinningSourceImpl @Inject constructor() : LottoWinningSource {
                 val stream = if (code in 200..299) conn.inputStream else conn.errorStream
                 val text = BufferedInputStream(stream).bufferedReader(Charsets.UTF_8).use { it.readText() }
                 if (code !in 200..299) throw IOException("HTTP $code\n$text")
+                Timber.d("Fetched URL: $url, Response Code: $code body: $text")
                 text
             } finally {
                 try { conn.disconnect() } catch (_: Throwable) {}
