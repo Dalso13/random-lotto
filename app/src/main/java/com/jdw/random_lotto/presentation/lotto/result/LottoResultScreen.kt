@@ -2,17 +2,10 @@ package com.jdw.random_lotto.presentation.lotto.result
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,23 +16,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.Segment
+import com.jdw.random_lotto.presentation.common.effect.AppDialog
+import com.jdw.random_lotto.presentation.common.effect.AppSnackbar
 import com.jdw.random_lotto.presentation.lotto.result.components.RoundHeader
-import com.jdw.random_lotto.presentation.lotto.result.components.TicketCard
 
 // 결과 화면 ----------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
-    val cs = MaterialTheme.colorScheme
-    val tp = MaterialTheme.typography
 
+    // 상태
     val state by vm.state.collectAsStateWithLifecycle()
 
     // 상단 세그먼트 (지난 회차/이번 회차)
     var segment by remember { mutableStateOf(Segment.LAST) }
+
+    // Effect 처리: 스낵바/다이얼로그 등 일회성
+    val snackbarHostState = remember { SnackbarHostState() }
+    var dialogEffect by remember { mutableStateOf<LottoResultEffect.ShowDialog?>(null) }
+
 
     LaunchedEffect(Unit) {
         vm.effect.collect { effect ->
@@ -47,9 +44,8 @@ fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
                 is LottoResultEffect.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
-
                 is LottoResultEffect.ShowDialog -> {
-                    dialogEffect = effect    // 다이얼로그는 상태로 들고 있다가 밑에서 그림
+                    dialogEffect = effect
                 }
             }
         }
@@ -72,39 +68,55 @@ fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
     }
 
     // UI -----------------------------------------------------------------
-    Column(Modifier.fillMaxSize()) {
-        // 상단: 복권 요약/토글
-        RoundHeader(
-            segment = segment,
-            onSelectSegment = { segment = it },
-            selectedTab = selectedTab,
-            state = state,
-        )
-
-        // 리스트
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(12.dp)
+    Box(
+        Modifier.fillMaxSize()
+    ) {
+        Column(
+            Modifier.fillMaxSize()
         ) {
-            items(state.resultItems, key = { it.id }) { item ->
-                TicketCard(
-                    type = selectedTab,
-                    item = item
+
+            // 당첨번호 헤더
+            RoundHeader(
+                segment = segment,
+                onSelectSegment = { segment = it },
+                selectedTab = selectedTab,
+                state = state,
+            )
+
+            // 리스트
+            if (state.isLoading) {
+                LottoResultSkeletonList()
+            } else {
+                LottoResultList(
+                    state = state,
+                    selectedTab = selectedTab,
                 )
             }
-
-            if (state.resultItems.isEmpty()) {
-                item {
-                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text("표시할 항목이 없어요", style = tp.bodyMedium, color = cs.onSurfaceVariant)
-                    }
-                }
-            }
-            item {
-                Spacer(Modifier.height(80.dp))
-            }
         }
+
+        // 스낵바
+        AppSnackbar(
+            snackbarHostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        )
     }
+
+    // 다이얼로그
+    AppDialog(
+        visible = dialogEffect != null,
+        message = dialogEffect?.message.orEmpty(),
+        confirmText = dialogEffect?.confirmText,
+        cancelText = dialogEffect?.cancelText,
+        onConfirm = {
+            dialogEffect?.confirmIntent?.let(vm::dispatch)
+        },
+        onCancel = {
+            dialogEffect?.cancelIntent?.let(vm::dispatch)
+        },
+        onDismissRequest = { dialogEffect = null }
+    )
 }
 
 
