@@ -8,7 +8,9 @@ import com.jdw.random_lotto.data.lotto.db.toEntity
 import com.jdw.random_lotto.domain.lotto.useCase.LottoEditUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.LottoSaveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -36,10 +38,14 @@ class LottoEditViewModel @Inject constructor(
      * @param keys - 해당 타입의 모든 키 집합
      */
     private fun selectAll(type: LottoType, keys: Set<String>) {
+        reduce { it.copy(isLoading = true) }
         val currentlyDeselected = state.value.deselectedKeysByType.getValue(type)
         reduce { st ->
             val next = if (currentlyDeselected.isEmpty()) keys else emptySet()
-            st.copy(deselectedKeysByType = st.deselectedKeysByType + (type to next))
+            st.copy(
+                deselectedKeysByType = st.deselectedKeysByType + (type to next),
+                isLoading = false
+            )
         }
     }
 
@@ -91,17 +97,19 @@ class LottoEditViewModel @Inject constructor(
 
         viewModelScope.launch {
             reduce { it.copy(isLoading = true, error = null) }
-            when (val result = saveUseCase(selected.map { it.toEntity() })) {
+            when (val result =
+                withContext(Dispatchers.IO) { saveUseCase(selected.map { it.toEntity() }) }) {
                 is LottoResult.Success -> {
                     reduce { st ->
                         st.copy(
                             isLoading = false,
-                            insertItems = st.insertItems.filterNot { it.type == type},
+                            insertItems = st.insertItems.filterNot { it.type == type },
                             deselectedKeysByType = st.deselectedKeysByType + (type to emptySet())
                         )
                     }
                     emit(LottoEditEffect.ShowSnackbar(result.value))
                 }
+
                 is LottoResult.Fail -> {
                     reduce { it.copy(isLoading = false, error = result.message) }
                 }
