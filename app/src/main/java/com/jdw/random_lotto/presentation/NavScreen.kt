@@ -28,7 +28,9 @@ fun NavScreen() {
     Random_lottoTheme(darkTheme = dark, dynamicColor = false) {
         NavHost(nav, startDestination = "main") {
             composable("main") {
-                MainScreen()
+                MainScreen(
+                    theme = themeMode,
+                )
             }
         }
     }
