@@ -22,17 +22,17 @@ class LottoSaveUseCaseImpl @Inject constructor(
     override suspend fun execute(params: List<LottoEntity>): LottoResult<String> {
         if (params.isEmpty()) return LottoResult.Fail("저장할 항목이 없어요.")
 
-        runCatching {
+        return runCatching {
             repo.addAll(params)
         }.fold(
             onSuccess = { saved ->
                 val check = params.size - saved.size
-                return when {
+                when {
                     check == 0 -> LottoResult.Success("저장!")
                     else -> LottoResult.Success("중복된 부분 $check 개 제외 저장!")
                 }
             },
-            onFailure = { e -> return LottoResult.Fail("저장 중 오류가 발생!") }
+            onFailure = { e -> LottoResult.Fail("저장 중 오류가 발생!") }
         )
     }
 

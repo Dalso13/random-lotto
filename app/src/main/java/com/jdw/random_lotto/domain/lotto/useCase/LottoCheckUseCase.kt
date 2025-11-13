@@ -30,6 +30,16 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
     override fun execute(params: LottoCheckParams): LottoResult<List<LottoResultModel>> {
         val (type, lottoModels, segment ,standardWinningModel, annuityWinningModel) = params
 
+        if (segment == Segment.CURRENT) {
+            return LottoResult.Success(
+                lottoModels.map { ticket ->
+                    ticket.toResult(
+                        evaluation = Evaluation.Pending()
+                    )
+                }
+            )
+        }
+
         when (type) {
             LottoType.STANDARD -> {
                 val results = checkStandardLottoResult(lottoModels, standardWinningModel)
@@ -59,7 +69,7 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
         val winningSet = winning.toSet()
         val bonus = winningModel.bonus
 
-        return list.map { ticket ->
+        val result = list.map { ticket ->
             val nums = ticket.number
 
             // 메인 6개 기준 일치 인덱스 수집(티켓 내 인덱스 0~5)
@@ -89,28 +99,9 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
                 )
             }
         }
-    }
 
-    // --- 등수 판정 (보너스 없음) ---
-    private fun determineAnnuityRank(
-        ticketGroup: Int,
-        ticketDigits: List<Int>,
-        winGroup: Int,
-        winDigits: List<Int>
-    ): Int? {
-        // 1등: 조+6자리 모두 일치
-        if (ticketGroup == winGroup && ticketDigits == winDigits) return 1
-
-        // 2~7등: 오른쪽부터 n자리 연속 일치 (조 무관)
-        return when {
-            ticketDigits.endsWithN(6, winDigits) -> 2
-            ticketDigits.endsWithN(5, winDigits) -> 3
-            ticketDigits.endsWithN(4, winDigits) -> 4
-            ticketDigits.endsWithN(3, winDigits) -> 5
-            ticketDigits.endsWithN(2, winDigits) -> 6
-            ticketDigits.endsWithN(1, winDigits) -> 7
-            else -> null
-        }
+        // 정렬후 반환
+        return result.sortByEvaluation()
     }
 
     /**
@@ -129,7 +120,7 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
         val winGroup = winningModel.group
         val winDigits = winningModel.winningNumbers()
 
-        return list.map { ticket ->
+        val result =  list.map { ticket ->
             val nums = ticket.number
 
             // 유효성: [조, d1..d6]
@@ -163,52 +154,112 @@ class LottoCheckUseCaseImpl @Inject constructor() : BlockingResultUseCase<LottoC
                 )
             }
         }
+
+        // 정렬후 반환
+        return result.sortByEvaluation()
+    }
+
+    // --- 등수 판정 보조 함수 ---
+
+    /**
+     * 등수 판정 (연금 복권 720+)
+     * @param ticketGroup 사용자의 조
+     * @param ticketDigits 사용자의 6자리 번호 리스트
+     * @param winGroup 당첨 조
+     * @param winDigits 당첨 6자리 번호 리스트
+     * @return 1~7등 또는 null(낙첨)
+     */
+    private fun determineAnnuityRank(
+        ticketGroup: Int,
+        ticketDigits: List<Int>,
+        winGroup: Int,
+        winDigits: List<Int>
+    ): Int? {
+        // 1등: 조+6자리 모두 일치
+        if (ticketGroup == winGroup && ticketDigits == winDigits) return 1
+
+        // 2~7등: 오른쪽부터 n자리 연속 일치 (조 무관)
+        return when {
+            ticketDigits.endsWithN(6, winDigits) -> 2
+            ticketDigits.endsWithN(5, winDigits) -> 3
+            ticketDigits.endsWithN(4, winDigits) -> 4
+            ticketDigits.endsWithN(3, winDigits) -> 5
+            ticketDigits.endsWithN(2, winDigits) -> 6
+            ticketDigits.endsWithN(1, winDigits) -> 7
+            else -> null
+        }
     }
 
 
+    /**
+     * 등수 판정 (일반 6/45)
+     * @param matchCount 메인 6개 당첨번호와 일치한 개수
+     * @param hasBonus   사용자의 번호 중 보너스 포함 여부
+     * @return 1~5등 또는 null(낙첨)
+     */
+    private fun determineRank(matchCount: Int, hasBonus: Boolean): Int? = when {
+        matchCount == 6 -> 1
+        matchCount == 5 && hasBonus -> 2
+        matchCount == 5 -> 3
+        matchCount == 4 -> 4
+        matchCount == 3 -> 5
+        else -> null
+    }
+
+    /**
+     * 연금 복권 등수별 일치 인덱스 반환
+     * @param rank 1~7등 또는 null
+     * @return 일치 인덱스 리스트 또는 null
+     */
+    private fun matchedIndicesForAnnuity(rank: Int?): List<Int>? = when (rank) {
+        1 -> (0..6).toList()  // 조+6자리
+        2 -> (1..6).toList()  // 6자리
+        3 -> (2..6).toList()  // 5자리
+        4 -> (3..6).toList()
+        5 -> (4..6).toList()
+        6 -> (5..6).toList()
+        7 -> listOf(6)        // 마지막 1자리
+        else -> null
+    }
+
+    /**
+     * 연금 복권 당첨번호 유효성 검사
+     * @param model 연금 복권 당첨 모델
+     */
+    private fun requireValidWinning(model: AnnuityWinningModel) {
+        require(model.group in 1..5) { "group must be 1..5" }
+        val main = model.winningNumbers()
+        require(main.size == 6 && main.all { it in 0..9 }) { "digits must be 6 numbers in 0..9" }
+    }
 }
 
-// --- 헬퍼---
-/**
- * 등수 판정 (일반 6/45)
- * @param matchCount 메인 6개 당첨번호와 일치한 개수
- * @param hasBonus   사용자의 번호 중 보너스 포함 여부
- * @return 1~5등 또는 null(낙첨)
- */
-private fun determineRank(matchCount: Int, hasBonus: Boolean): Int? = when {
-    matchCount == 6 -> 1
-    matchCount == 5 && hasBonus -> 2
-    matchCount == 5 -> 3
-    matchCount == 4 -> 4
-    matchCount == 3 -> 5
-    else -> null
+// 정렬 함수
+
+private fun List<LottoResultModel>.sortByEvaluation(): List<LottoResultModel> {
+    return this.sortedWith { a, b ->
+        when {
+            a.evaluation is Evaluation.Win && b.evaluation is Evaluation.Win -> {
+                // 둘 다 당첨: 등수 오름차순
+                val rankA = a.evaluation.rank
+                val rankB = b.evaluation.rank
+                rankA.compareTo(rankB)
+            }
+            a.evaluation is Evaluation.Win && b.evaluation is Evaluation.Lose -> {
+                // a 당첨, b 낙첨: a 우선
+                -1
+            }
+            a.evaluation is Evaluation.Lose && b.evaluation is Evaluation.Win -> {
+                // a 낙첨, b 당첨: b 우선
+                1
+            }
+            else -> {
+                // 둘 다 낙첨: 원래 순서 유지
+                0
+            }
+        }
+    }
 }
 
-/**
- * 연금 복권 등수별 일치 인덱스 반환
- * @param rank 1~7등 또는 null
- * @return 일치 인덱스 리스트 또는 null
- */
-private fun matchedIndicesForAnnuity(rank: Int?): List<Int>? = when (rank) {
-    1 -> (0..6).toList()  // 조+6자리
-    2 -> (1..6).toList()  // 6자리
-    3 -> (2..6).toList()  // 5자리
-    4 -> (3..6).toList()
-    5 -> (4..6).toList()
-    6 -> (5..6).toList()
-    7 -> listOf(6)        // 마지막 1자리
-    else -> null
-}
-
-/**
- * 연금 복권 당첨번호 유효성 검사
- * @param model 연금 복권 당첨 모델
- */
-private fun requireValidWinning(model: AnnuityWinningModel) {
-    require(model.group in 1..5) { "group must be 1..5" }
-    val main = model.winningNumbers()
-    require(main.size == 6 && main.all { it in 0..9 }) { "digits must be 6 numbers in 0..9" }
-}
 
 // --- List<Int> 확장 함수 ---
 /**
@@ -222,3 +273,4 @@ private fun List<Int>.endsWithN(n: Int, target: List<Int>): Boolean {
     val from = this.size - n
     return this.subList(from, this.size) == target.subList(target.size - n, target.size)
 }
+

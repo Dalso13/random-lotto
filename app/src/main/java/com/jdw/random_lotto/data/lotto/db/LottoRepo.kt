@@ -5,7 +5,7 @@ import com.jdw.random_lotto.data.lotto.db.entity.LottoEntity
 import kotlinx.coroutines.flow.Flow
 
 interface LottoRepo {
-    fun load(type: LottoType, start: Long, end: Long): List<LottoEntity>
+    suspend fun load(type: LottoType, start: Long, end: Long): List<LottoEntity>
     fun observeCount(type: LottoType): Flow<Long>
     suspend fun addAll(number: List<LottoEntity>): List<Long>
     suspend fun remove(id: Long): Int
@@ -15,7 +15,7 @@ interface LottoRepo {
 class LottoRepoImpl(
     private val dao: LottoDao
 ) : LottoRepo {
-    override fun load(type: LottoType, start: Long, end: Long): List<LottoEntity> = dao.load(type, start, end)
+    override suspend fun load(type: LottoType, start: Long, end: Long): List<LottoEntity> = dao.load(type, start, end)
     override fun observeCount(type: LottoType): Flow<Long> = dao.observeCount(type)
 
     override suspend fun addAll(items: List<LottoEntity>): List<Long> {

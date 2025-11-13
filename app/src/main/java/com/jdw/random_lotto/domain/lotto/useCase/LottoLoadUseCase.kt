@@ -5,8 +5,8 @@ import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.Segment
 import com.jdw.random_lotto.data.lotto.db.LottoRepo
 import com.jdw.random_lotto.data.lotto.db.toModel
-import com.jdw.random_lotto.domain.core.useCase.BlockingResultUseCase
-import com.jdw.random_lotto.domain.core.useCase.BlockingUseCase
+import com.jdw.random_lotto.domain.core.useCase.SuspendResultUseCase
+import com.jdw.random_lotto.domain.core.useCase.SuspendUseCase
 import com.jdw.random_lotto.domain.lotto.model.LottoModel
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -15,21 +15,26 @@ import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
-interface LottoLoadUseCase: BlockingUseCase<Pair<LottoType, Segment>, LottoResult<List<LottoModel>>>
+interface LottoLoadUseCase: SuspendUseCase<Pair<LottoType, Segment>, LottoResult<List<LottoModel>>>
 
 @Singleton
 class LottoLoadUseCaseImpl @Inject constructor(
     private val repo: LottoRepo
-): BlockingResultUseCase<Pair<LottoType, Segment>, List<LottoModel>>(), LottoLoadUseCase {
+): SuspendResultUseCase<Pair<LottoType, Segment>, List<LottoModel>>(), LottoLoadUseCase {
 
-    override fun execute(params: Pair<LottoType, Segment>): LottoResult<List<LottoModel>> {
+    override suspend fun execute(params: Pair<LottoType, Segment>): LottoResult<List<LottoModel>> {
         val (start, end) = calculateLottoDate(params.first, params.second)
 
-        val list = repo.load(params.first, start, end)
-
-        return LottoResult.Success(list.map { entity ->
-            entity.toModel()
-        })
+        return runCatching {
+            repo.load(params.first, start, end)
+        }.fold(
+            onSuccess = { load ->
+                LottoResult.Success(load.map { entity ->
+                    entity.toModel()
+                })
+            },
+            onFailure = { e -> LottoResult.Fail("로드 중 오류가 발생! : $e") }
+        )
     }
 
     /**

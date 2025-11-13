@@ -15,6 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -56,6 +58,7 @@ class LottoResultViewModel @Inject constructor(
         val annuity  = annuityDeferred.await()
 
         if (standard is LottoResult.Fail || annuity is LottoResult.Fail) {
+            Timber.e("Error fetching winning data: Standard=$standard, Annuity=$annuity")
             viewModelScope.launch {  emit(LottoResultEffect.ShowDialog(
                 message = "당첨 번호를 불러오는 중 오류가 발생했습니다. 다시 시도할까요?",
                 confirmText = "재시도",
@@ -64,6 +67,7 @@ class LottoResultViewModel @Inject constructor(
                 cancelIntent = null
             )) }
             reduce { it.copy(isLoading = false) }
+
             return@coroutineScope
         }
 
@@ -75,6 +79,8 @@ class LottoResultViewModel @Inject constructor(
                     isLoading = false
                 )
             }
+
+            getLottoResult(LottoType.STANDARD, Segment.LAST)
         }
     }
 
@@ -85,40 +91,45 @@ class LottoResultViewModel @Inject constructor(
      * @param segment - 구간
      */
     private fun getLottoResult(type: LottoType, segment: Segment) {
-        if (_state.value.standardWinningModel == null || _state.value.annuityWinningModel == null) {
-            viewModelScope.launch {  emit(LottoResultEffect.ShowSnackbar("당첨 번호가 설정되지 않았습니다.")) }
-            return
-        }
+        viewModelScope.launch {
+            if (_state.value.standardWinningModel == null || _state.value.annuityWinningModel == null) {
+                emit(LottoResultEffect.ShowSnackbar("당첨 번호가 설정되지 않았습니다."))
+                return@launch
+            }
 
-        val list = loadUseCase(Pair(type, segment))
+            reduce { it.copy(isLoading = true) }
 
-        when (list) {
-            is LottoResult.Success -> {
-                // 당첨 결과 확인
-                val result = checkUseCase(
-                    LottoCheckParams(
-                        type = type,
-                        lottoModels = list.value,
-                        segment = segment,
-                        standardWinningModel = _state.value.standardWinningModel!!,
-                        annuityWinningModel = _state.value.annuityWinningModel!!
+            when (val list = withContext(Dispatchers.IO) { loadUseCase(Pair(type, segment)) }) {
+                is LottoResult.Success -> {
+                    // 당첨 결과 확인
+                    val result = checkUseCase(
+                        LottoCheckParams(
+                            type = type,
+                            lottoModels = list.value,
+                            segment = segment,
+                            standardWinningModel = _state.value.standardWinningModel!!,
+                            annuityWinningModel = _state.value.annuityWinningModel!!
+                        )
                     )
-                )
 
-                when (result) {
-                    is LottoResult.Success -> {
-                        reduce { it.copy(resultItems = result.value) }
-                    }
+                    when (result) {
+                        is LottoResult.Success -> {
+                            reduce { it.copy(resultItems = result.value) }
+                        }
 
-                    is LottoResult.Fail -> {
-                        viewModelScope.launch {  emit(LottoResultEffect.ShowSnackbar("당첨 결과를 불러오는 중 오류가 발생했습니다.")) }
+                        is LottoResult.Fail -> {
+                            viewModelScope.launch { emit(LottoResultEffect.ShowSnackbar("당첨 결과를 불러오는 중 오류가 발생했습니다.")) }
+                        }
                     }
+                }
+
+                is LottoResult.Fail -> {
+                    Timber.e("Error loading lotto results: $list")
+                    viewModelScope.launch { emit(LottoResultEffect.ShowSnackbar("로또 번호를 불러오는 중 오류가 발생했습니다.")) }
                 }
             }
 
-            is LottoResult.Fail -> {
-                viewModelScope.launch {  emit(LottoResultEffect.ShowSnackbar("로또 번호를 불러오는 중 오류가 발생했습니다.")) }
-            }
+            reduce { it.copy(isLoading = false) }
         }
     }
 }
