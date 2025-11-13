@@ -2,6 +2,7 @@ package com.jdw.random_lotto.presentation.main
 
 import androidx.compose.runtime.Immutable
 import com.jdw.random_lotto.common.util.BottomMode
+import com.jdw.random_lotto.common.util.DrawerMenu
 import com.jdw.random_lotto.common.util.LottoType
 
 // MVI Contract
@@ -11,10 +12,11 @@ import com.jdw.random_lotto.common.util.LottoType
 data class MainState(
     val isLoading: Boolean = false,
     val menuExpanded: Boolean = false,
+    val themeSelectExpanded: Boolean = false,
     val selectedTopTab: LottoType = LottoType.STANDARD,
     val currentPage: Int = 0,                 // HorizontalPager index
     val tabs: List<BottomMode> = BottomMode.entries.toList(),
-    val topTabs: List<LottoType> = LottoType.entries.toList()
+    val topTabs: List<LottoType> = LottoType.entries.toList(),
 )
 
 // intent (동작)
@@ -22,8 +24,8 @@ sealed interface MainIntent {
     data class SelectTopTab(val tab: LottoType) : MainIntent
     data class ChangePage(val page: Int) : MainIntent
     data class MenuExpanded(val expanded: Boolean) : MainIntent
-    data object ClickMenuSettings : MainIntent
-    data object ClickMenuHistory : MainIntent
+    data class ClickMenu(val menu: DrawerMenu) : MainIntent
+    data class ThemeSelectExpanded(val expanded: Boolean) : MainIntent
 }
 
 // effect (일회성 이벤트)

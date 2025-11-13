@@ -22,15 +22,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.BottomMode
+import com.jdw.random_lotto.common.util.DrawerMenu
+import com.jdw.random_lotto.common.util.ThemeMode
+import com.jdw.random_lotto.common.util.ThemeStore
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditScreen
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditViewModel
 import com.jdw.random_lotto.presentation.lotto.result.LottoResultScreen
 import com.jdw.random_lotto.presentation.lotto.result.LottoResultViewModel
 import com.jdw.random_lotto.presentation.main.components.MainBottomBar
 import com.jdw.random_lotto.presentation.main.components.MainTopBar
+import com.jdw.random_lotto.presentation.main.components.ThemeSettingDialog
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +44,8 @@ fun MainScreen(
     mainVm: MainViewModel = hiltViewModel(),
     lottoEditVm: LottoEditViewModel = hiltViewModel(),
     lottoResultVm: LottoResultViewModel = hiltViewModel(),
-    onNavigate: (String) -> Unit = {}
+    onNavigate: (String) -> Unit = {},
+    theme: ThemeMode
 ) {
     val cs = MaterialTheme.colorScheme
     val state by mainVm.state.collectAsStateWithLifecycle()
@@ -49,7 +55,9 @@ fun MainScreen(
         initialPage = state.currentPage,
         pageCount = { state.tabs.size }
     )
+
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Effect 처리: 스크롤/네비 등 일회성
     LaunchedEffect(Unit) {
@@ -91,14 +99,14 @@ fun MainScreen(
                         onDismissRequest = { mainVm.dispatch(MainIntent.MenuExpanded(false)) },
                         containerColor = cs.background
                     ) {
-                        DropdownMenuItem(
-                            text = { Text("테마 설정") },
-                            onClick = { mainVm.dispatch(MainIntent.ClickMenuSettings) }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("당첨기록") },
-                            onClick = { mainVm.dispatch(MainIntent.ClickMenuHistory) }
-                        )
+                        DrawerMenu.entries.forEach { menu ->
+                            DropdownMenuItem(
+                                text = { Text(menu.title) },
+                                onClick = {
+                                    mainVm.dispatch(MainIntent.ClickMenu(menu))
+                                }
+                            )
+                        }
                     }
                 }
             )
@@ -129,5 +137,21 @@ fun MainScreen(
                 }
             }
         }
+    }
+
+    if (state.themeSelectExpanded) {
+         ThemeSettingDialog(
+             onDismissRequest = {
+                mainVm.dispatch(MainIntent.ThemeSelectExpanded(false))
+             },
+             onConfirm = { selectedTheme ->
+                 // 테마 변경 처리
+                 scope.launch {
+                     mainVm.dispatch(MainIntent.ThemeSelectExpanded(false))
+                     ThemeStore.saveThemeMode(context, selectedTheme)
+                 }
+             },
+             theme = theme
+         )
     }
 }

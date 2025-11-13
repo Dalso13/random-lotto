@@ -2,6 +2,7 @@ package com.jdw.random_lotto.presentation.main
 
 
 import com.jdw.random_lotto.common.base.BaseViewModel
+import com.jdw.random_lotto.common.util.DrawerMenu
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -18,14 +19,18 @@ class MainViewModel @Inject constructor() : BaseViewModel<MainState, MainIntent,
                 emit(MainEffect.ScrollPagerTo(intent.page))
             }
             is MainIntent.MenuExpanded -> reduce { it.copy(menuExpanded = intent.expanded) }
-            MainIntent.ClickMenuSettings -> {
+            is MainIntent.ClickMenu -> {
                 reduce { it.copy(menuExpanded = false) }
-                emit(MainEffect.NavigateTo("settings"))
+                when (intent.menu) {
+                    DrawerMenu.HISTORY -> {
+//                        emit(MainEffect.NavigateTo("history"))
+                    }
+                    DrawerMenu.THEME -> {
+                        reduce { it.copy(themeSelectExpanded = true) }
+                    }
+                }
             }
-            MainIntent.ClickMenuHistory -> {
-                reduce { it.copy(menuExpanded = false) }
-                emit(MainEffect.NavigateTo("history"))
-            }
+            is MainIntent.ThemeSelectExpanded -> reduce { it.copy(themeSelectExpanded = intent.expanded) }
         }
     }
 }

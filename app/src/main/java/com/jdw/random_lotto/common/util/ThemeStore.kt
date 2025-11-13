@@ -24,6 +24,8 @@ object ThemeStore {
     }
 }
 
-enum class ThemeMode {
-    LIGHT, DARK, FOLLOW_SYSTEM
+enum class ThemeMode(val title: String) {
+    LIGHT("밝게"),
+    DARK("어둡게"),
+    FOLLOW_SYSTEM("시스템 설정")
 }
