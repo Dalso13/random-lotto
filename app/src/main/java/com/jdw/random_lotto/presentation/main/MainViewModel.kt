@@ -13,10 +13,10 @@ class MainViewModel @Inject constructor() : BaseViewModel<MainState, MainIntent,
     override suspend fun handleIntent(intent: MainIntent) {
         when (intent) {
             is MainIntent.SelectTopTab -> reduce { it.copy(selectedTopTab = intent.tab) }
-            is MainIntent.ChangePage   -> {
+            is MainIntent.SelectBottomTab   -> {
                 // 상태는 즉시 반영하고, Pager 애니메이션은 Effect로 일회성 전달
                 reduce { it.copy(currentPage = intent.page) }
-                emit(MainEffect.ScrollPagerTo(intent.page))
+                emit(MainEffect.ChangeBottomTab(intent.page))
             }
             is MainIntent.MenuExpanded -> reduce { it.copy(menuExpanded = intent.expanded) }
             is MainIntent.ClickMenu -> {

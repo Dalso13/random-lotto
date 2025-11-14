@@ -1,5 +1,8 @@
 package com.jdw.random_lotto.presentation.lotto.edit
 
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,27 +39,31 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.common.util.NavigationMode
+import com.jdw.random_lotto.common.util.permission.AppPermission
+import com.jdw.random_lotto.common.util.permission.PermissionManager
 import com.jdw.random_lotto.presentation.lotto.edit.components.LottoItem
 
 /**
  * 복권 추가 화면
  * @param selectedTab - 현재 선택된 탭 (복권 종류)
  * @param lottoEditVm - 뷰모델
- * @param onOpenQrScanner - QR 스캐너 열기 콜백
- * @param onOpenQrFromGallery - 갤러리에서 QR 열기 콜백
+ * @param onNavigate - 네비게이트 콜백
  */
 @Composable
 fun LottoEditScreen(
     selectedTab: LottoType,
     lottoEditVm: LottoEditViewModel,
-    onOpenQrScanner: () -> Unit = {},
-    onOpenQrFromGallery: () -> Unit = {},
+    onNavigate: (NavigationMode) -> Unit
 ) {
     val cs = colorScheme
     val state by lottoEditVm.state.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
 
     // 탭별 아이템만
     val lottoItems by remember(state.insertItems, selectedTab) {
@@ -71,6 +78,34 @@ fun LottoEditScreen(
     val selectedCount by remember(keys, deselected) {
         derivedStateOf { keys.size - deselected.count { it in keys.toSet() } }
     }
+
+    // 카메라 퍼미션 런처
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { result ->
+            val allGranted = result.values.all { it }
+            if (allGranted) {
+                onNavigate(NavigationMode.QR_SCAN)
+            } else {
+                // 거부된 경우 → 필요하면 토스트/스낵바 등 처리
+                // ex) "카메라 권한을 허용해야 QR 스캔을 사용할 수 있어요"
+            }
+        }
+
+    // 갤러리 퍼미션 런처
+    val galleryPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { result ->
+            val allGranted = result.values.all { it }
+            if (allGranted) {
+                // 권한 허용되면 실제 갤러리 열기
+                onNavigate(NavigationMode.QR_GALLERY)
+            } else {
+                // 거부된 경우 → 필요하면 토스트/스낵바 등 처리
+            }
+        }
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -107,7 +142,19 @@ fun LottoEditScreen(
 
                     // 갤러리 QR 버튼
                     OutlinedButton(
-                        onClick = onOpenQrFromGallery,
+                        onClick = {
+                            PermissionManager.checkAppPermission(
+                                context = context,
+                                activity = context as Activity,
+                                permission = AppPermission.GALLERY,
+                                active = {
+                                    onNavigate(NavigationMode.QR_GALLERY)
+                                },
+                                lancher = { perms ->
+                                    galleryPermissionLauncher.launch(perms)
+                                }
+                            )
+                        },
                         border = BorderStroke(1.dp, cs.primary),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = cs.primary),
                         shape = RoundedCornerShape(10.dp)
@@ -181,7 +228,17 @@ fun LottoEditScreen(
 
         // QR 스캔 플로팅 액션 버튼
         ExtendedFloatingActionButton(
-            onClick = onOpenQrScanner,
+            onClick = {
+                PermissionManager.checkAppPermission(
+                    context = context,
+                    activity = context as Activity,
+                    permission = AppPermission.CAMERA,
+                    active = { onNavigate(NavigationMode.QR_SCAN) },
+                    lancher = { perms ->
+                        cameraPermissionLauncher.launch(perms)
+                    }
+                )
+            },
             icon = { Icon(Icons.Filled.QrCodeScanner, contentDescription = null) },
             text = { Text("QR 스캔") },
             containerColor = cs.primary,

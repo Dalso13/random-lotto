@@ -22,7 +22,7 @@ data class MainState(
 // intent (동작)
 sealed interface MainIntent {
     data class SelectTopTab(val tab: LottoType) : MainIntent
-    data class ChangePage(val page: Int) : MainIntent
+    data class SelectBottomTab(val page: Int) : MainIntent
     data class MenuExpanded(val expanded: Boolean) : MainIntent
     data class ClickMenu(val menu: DrawerMenu) : MainIntent
     data class ThemeSelectExpanded(val expanded: Boolean) : MainIntent
@@ -30,7 +30,6 @@ sealed interface MainIntent {
 
 // effect (일회성 이벤트)
 sealed interface MainEffect {
-    data class NavigateTo(val route: String) : MainEffect
-    data class ScrollPagerTo(val page: Int) : MainEffect // 일회성 스크롤 지시
+    data class ChangeBottomTab(val page: Int) : MainEffect
     data class ShowMessage(val message: String) : MainEffect
 }

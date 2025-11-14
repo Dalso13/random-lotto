@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,10 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.BottomMode
 import com.jdw.random_lotto.common.util.DrawerMenu
+import com.jdw.random_lotto.common.util.NavigationMode
 import com.jdw.random_lotto.common.util.ThemeMode
 import com.jdw.random_lotto.common.util.ThemeStore
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditScreen
@@ -44,7 +47,7 @@ fun MainScreen(
     mainVm: MainViewModel = hiltViewModel(),
     lottoEditVm: LottoEditViewModel = hiltViewModel(),
     lottoResultVm: LottoResultViewModel = hiltViewModel(),
-    onNavigate: (String) -> Unit = {},
+    onNavigate: (NavigationMode) -> Unit,
     theme: ThemeMode
 ) {
     val cs = MaterialTheme.colorScheme
@@ -63,10 +66,9 @@ fun MainScreen(
     LaunchedEffect(Unit) {
         mainVm.effect.collect { effect ->
             when (effect) {
-                is MainEffect.ScrollPagerTo -> scope.launch {
+                is MainEffect.ChangeBottomTab -> scope.launch {
                     pagerState.animateScrollToPage(effect.page)
                 }
-                is MainEffect.NavigateTo -> onNavigate(effect.route)
                 is MainEffect.ShowMessage -> {
                     // Snackbar 등으로 처리 가능
                 }
@@ -77,7 +79,7 @@ fun MainScreen(
     // Pager의 실제 페이지 변경을 상태에 반영 (드래그로 넘겼을 때)
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage != state.currentPage) {
-            mainVm.dispatch(MainIntent.ChangePage(pagerState.currentPage))
+            mainVm.dispatch(MainIntent.SelectBottomTab(pagerState.currentPage))
         }
     }
 
@@ -97,14 +99,29 @@ fun MainScreen(
                     DropdownMenu(
                         expanded = state.menuExpanded,
                         onDismissRequest = { mainVm.dispatch(MainIntent.MenuExpanded(false)) },
-                        containerColor = cs.background
+                        containerColor = cs.background,
                     ) {
                         DrawerMenu.entries.forEach { menu ->
                             DropdownMenuItem(
-                                text = { Text(menu.title) },
+                                text = { Text(menu.title, style = MaterialTheme.typography.titleMedium) },
                                 onClick = {
                                     mainVm.dispatch(MainIntent.ClickMenu(menu))
-                                }
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = menu.icon,
+                                        contentDescription = menu.title
+                                    )
+                                },
+                                colors = MenuItemColors(
+                                    textColor = cs.onBackground,
+                                    leadingIconColor = cs.primary,
+                                    trailingIconColor = cs.onPrimary,
+                                    disabledTextColor = cs.onBackground.copy(alpha = 0.38f),
+                                    disabledLeadingIconColor = cs.onBackground.copy(alpha = 0.38f),
+                                    disabledTrailingIconColor = cs.onBackground.copy(alpha = 0.38f),
+                                ),
+                                modifier = Modifier.padding(horizontal = 8.dp)
                             )
                         }
                     }
@@ -133,7 +150,7 @@ fun MainScreen(
             ) { page ->
                 when (state.tabs[page]) {
                     BottomMode.VIEW -> LottoResultScreen(state.selectedTopTab, lottoResultVm)
-                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm)
+                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm, onNavigate)
                 }
             }
         }

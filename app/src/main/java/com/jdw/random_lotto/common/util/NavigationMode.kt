@@ -1,5 +1,13 @@
 package com.jdw.random_lotto.common.util
 
+// 페이지 선택
+enum class NavigationMode(val label: String) {
+    MAIN("main"),
+    QR_SCAN("qrScan"),
+    QR_GALLERY("qrGallery"),
+    HISTORY("history"),
+}
+
 // 상단 탭 모드
 enum class LottoType(val label: String, val title: String) {
     STANDARD("Standard", "6/45 로또"),

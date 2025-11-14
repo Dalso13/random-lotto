@@ -5,6 +5,8 @@ import com.jdw.random_lotto.domain.lotto.model.LottoModel
 
 // 상태
 data class LottoEditState(
+    val visibleQrScan: Boolean = false,                             // QR 스캔 화면 표시 여부
+    val visibleQrGallery: Boolean = false,                          // QR 갤러리 선택 화면 표시 여부
     val insertItems: List<LottoModel> = emptyList(),                // 추가된 항목들
     val deselectedKeysByType: Map<LottoType, Set<String>> =         // 선택 해제된 항목들의 키 맵
         LottoType.entries.associateWith { emptySet() },
