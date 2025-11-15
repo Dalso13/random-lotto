@@ -29,6 +29,7 @@ class LottoEditViewModel @Inject constructor(
             is LottoEditIntent.ToggleSelect -> toggleSelect(intent.type, intent.keys)
             is LottoEditIntent.Edit -> edit(intent.type)
             is LottoEditIntent.Save -> save(intent.type)
+            is LottoEditIntent.Delete -> delete(intent.type)
         }
     }
 
@@ -114,6 +115,15 @@ class LottoEditViewModel @Inject constructor(
                     reduce { it.copy(isLoading = false, error = result.message) }
                 }
             }
+        }
+    }
+
+    private fun delete(type: LottoType) {
+        reduce { st ->
+            st.copy(
+                insertItems = st.insertItems.filterNot { it.type == type },
+                deselectedKeysByType = st.deselectedKeysByType + (type to emptySet())
+            )
         }
     }
 }

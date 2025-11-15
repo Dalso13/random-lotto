@@ -3,6 +3,7 @@ package com.jdw.random_lotto.presentation.main
 
 import com.jdw.random_lotto.common.base.BaseViewModel
 import com.jdw.random_lotto.common.util.DrawerMenu
+import com.jdw.random_lotto.common.util.NavigationMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -23,7 +24,7 @@ class MainViewModel @Inject constructor() : BaseViewModel<MainState, MainIntent,
                 reduce { it.copy(menuExpanded = false) }
                 when (intent.menu) {
                     DrawerMenu.HISTORY -> {
-//                        emit(MainEffect.NavigateTo("history"))
+                        emit(MainEffect.OnNavigate(NavigationMode.HISTORY))
                     }
                     DrawerMenu.THEME -> {
                         reduce { it.copy(themeSelectExpanded = true) }

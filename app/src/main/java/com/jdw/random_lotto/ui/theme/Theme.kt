@@ -41,6 +41,9 @@ private val LightColorScheme = lightColorScheme(
     primaryContainer = BrandUnselectedLight,
     onPrimaryContainer = OnPrimaryContainerLight,
 
+    error = ErrorColor,
+    errorContainer = ErrorLight,
+
     background = BackgroundLight,
     surface = SurfaceLight,
     onBackground = OnBackgroundLight,
@@ -62,6 +65,9 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = Color.White,
     primaryContainer = BrandUnselectedDark,
     onPrimaryContainer = OnPrimaryContainerDark,
+
+    error = ErrorColor,
+    errorContainer = ErrorDark,
 
     background = BackgroundDark,
     surface = SurfaceDark,

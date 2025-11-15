@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,21 +48,23 @@ import com.jdw.random_lotto.common.util.NavigationMode
 import com.jdw.random_lotto.common.util.permission.AppPermission
 import com.jdw.random_lotto.common.util.permission.PermissionManager
 import com.jdw.random_lotto.presentation.lotto.edit.components.LottoItem
+import com.jdw.random_lotto.presentation.lotto.result.LottoResultEffect
 
 /**
  * 복권 추가 화면
  * @param selectedTab - 현재 선택된 탭 (복권 종류)
- * @param lottoEditVm - 뷰모델
+ * @param vm - 뷰모델
  * @param onNavigate - 네비게이트 콜백
  */
 @Composable
 fun LottoEditScreen(
     selectedTab: LottoType,
-    lottoEditVm: LottoEditViewModel,
-    onNavigate: (NavigationMode) -> Unit
+    vm: LottoEditViewModel,
+    onNavigate: (NavigationMode) -> Unit,
+    onSnackBar: (String) -> Unit
 ) {
     val cs = colorScheme
-    val state by lottoEditVm.state.collectAsStateWithLifecycle()
+    val state by vm.state.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -88,8 +91,7 @@ fun LottoEditScreen(
             if (allGranted) {
                 onNavigate(NavigationMode.QR_SCAN)
             } else {
-                // 거부된 경우 → 필요하면 토스트/스낵바 등 처리
-                // ex) "카메라 권한을 허용해야 QR 스캔을 사용할 수 있어요"
+
             }
         }
 
@@ -106,6 +108,16 @@ fun LottoEditScreen(
                 // 거부된 경우 → 필요하면 토스트/스낵바 등 처리
             }
         }
+
+    LaunchedEffect(Unit) {
+        vm.effect.collect { effect ->
+            when (effect) {
+                is LottoEditEffect.ShowSnackbar -> {
+                    onSnackBar(effect.message)
+                }
+            }
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -126,7 +138,7 @@ fun LottoEditScreen(
 
                     // 무작위 생성 버튼
                     OutlinedButton(
-                        onClick = { lottoEditVm.dispatch(LottoEditIntent.Edit(selectedTab)) },
+                        onClick = { vm.dispatch(LottoEditIntent.Edit(selectedTab)) },
                         border = BorderStroke(1.dp, cs.primary),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = cs.primary),
                         shape = RoundedCornerShape(10.dp)
@@ -172,7 +184,7 @@ fun LottoEditScreen(
 
                     // 전체 선택/해제
                     IconButton(onClick = {
-                        lottoEditVm.dispatch(LottoEditIntent.SelectAll(selectedTab, keys.toSet()))
+                        vm.dispatch(LottoEditIntent.SelectAll(selectedTab, keys.toSet()))
                     }) {
                         Icon(
                             if (deselected.isEmpty()) Icons.Filled.RadioButtonChecked
@@ -196,25 +208,44 @@ fun LottoEditScreen(
                     item = item,
                     selected = selected,
                     onToggle = {
-                        lottoEditVm.dispatch(LottoEditIntent.ToggleSelect(selectedTab, key))
+                        vm.dispatch(LottoEditIntent.ToggleSelect(selectedTab, key))
                     }
                 )
             }
         }
 
-        // 선택된 아이템 저장 버튼
-        Box(
+        // 선택된 아이템 저장, 삭제 버튼
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 12.dp, vertical = 12.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
                 onClick = {
-                    lottoEditVm.dispatch(LottoEditIntent.Save(selectedTab))
+                    vm.dispatch(LottoEditIntent.Delete(selectedTab))
                 },
                 enabled = selectedCount > 0,
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = cs.error,
+                    contentColor = cs.onPrimary,
+                    disabledContainerColor = cs.errorContainer,
+                    disabledContentColor = cs.onPrimaryContainer
+                ),
+                shape = RoundedCornerShape(14.dp)
+            ) { Text("선택 ${selectedCount}개 제거") }
+
+            Button(
+                onClick = {
+                    vm.dispatch(LottoEditIntent.Save(selectedTab))
+                },
+                enabled = selectedCount > 0,
+                modifier = Modifier
+                    .weight(1f)
                     .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = cs.primary,
@@ -224,6 +255,7 @@ fun LottoEditScreen(
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) { Text("선택 ${selectedCount}개 저장") }
+
         }
 
         // QR 스캔 플로팅 액션 버튼

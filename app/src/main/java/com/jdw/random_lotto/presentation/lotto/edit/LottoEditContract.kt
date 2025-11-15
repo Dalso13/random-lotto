@@ -20,6 +20,7 @@ sealed interface LottoEditIntent {
     data class SelectAll(val type: LottoType, val keys: Set<String>) : LottoEditIntent      // 전체 선택/해제
     data class Edit(val type: LottoType): LottoEditIntent                                   // 추가 (무작위 번호 생성)
     data class Save(val type: LottoType) : LottoEditIntent                                  // 저장 (DB에 삽입)
+    data class Delete(val type: LottoType) : LottoEditIntent                                // 제거 (리스트에서)
 }
 
 // ui effect (일회성 이벤트)

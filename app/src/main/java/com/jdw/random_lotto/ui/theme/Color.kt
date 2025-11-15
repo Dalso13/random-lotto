@@ -9,6 +9,10 @@ val BrandUnselectedDark = Color(0xFF1E2A3D)
 val OnPrimaryContainerLight = Color(0xFF083266)
 val OnPrimaryContainerDark = Color(0xFFBBD6FF)
 
+val ErrorColor = Color(0xFFFF4081)
+val ErrorLight = Color(0xFFF1D9EE)
+val ErrorDark = Color(0xFF574057)
+
 val BackgroundLight = Color(0xFFFFFFFF)
 val SurfaceLight = Color(0xFFFFFFFF)
 val OnBackgroundLight = Color(0xFF0D141B)

@@ -25,7 +25,11 @@ import com.jdw.random_lotto.presentation.lotto.result.components.RoundHeader
 // 결과 화면 ----------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
+fun LottoResultScreen(
+    selectedTab: LottoType,
+    vm: LottoResultViewModel,
+    onSnackBar: (String) -> Unit
+) {
 
     // 상태
     val state by vm.state.collectAsStateWithLifecycle()
@@ -34,7 +38,6 @@ fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
     var segment by remember { mutableStateOf(Segment.LAST) }
 
     // Effect 처리: 스낵바/다이얼로그 등 일회성
-    val snackbarHostState = remember { SnackbarHostState() }
     var dialogEffect by remember { mutableStateOf<LottoResultEffect.ShowDialog?>(null) }
 
 
@@ -42,7 +45,7 @@ fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
         vm.effect.collect { effect ->
             when (effect) {
                 is LottoResultEffect.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    onSnackBar(effect.message)
                 }
                 is LottoResultEffect.ShowDialog -> {
                     dialogEffect = effect
@@ -100,14 +103,6 @@ fun LottoResultScreen(selectedTab: LottoType, vm: LottoResultViewModel) {
                 )
             }
         }
-
-        // 스낵바
-        AppSnackbar(
-            snackbarHostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
-        )
     }
 
     // 다이얼로그

@@ -2,6 +2,7 @@ package com.jdw.random_lotto.presentation.common.effect
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarHost
@@ -20,6 +21,8 @@ fun AppSnackbar(
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
+    val cs = MaterialTheme.colorScheme
+
     SnackbarHost(
         hostState = snackbarHostState,
         modifier = modifier.padding(bottom = 16.dp),

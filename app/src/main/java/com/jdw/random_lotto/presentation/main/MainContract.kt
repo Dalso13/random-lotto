@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.jdw.random_lotto.common.util.BottomMode
 import com.jdw.random_lotto.common.util.DrawerMenu
 import com.jdw.random_lotto.common.util.LottoType
+import com.jdw.random_lotto.common.util.NavigationMode
 
 // MVI Contract
 
@@ -13,6 +14,7 @@ data class MainState(
     val isLoading: Boolean = false,
     val menuExpanded: Boolean = false,
     val themeSelectExpanded: Boolean = false,
+    val notificationSettingExpanded: Boolean = false,
     val selectedTopTab: LottoType = LottoType.STANDARD,
     val currentPage: Int = 0,                 // HorizontalPager index
     val tabs: List<BottomMode> = BottomMode.entries.toList(),
@@ -31,5 +33,6 @@ sealed interface MainIntent {
 // effect (일회성 이벤트)
 sealed interface MainEffect {
     data class ChangeBottomTab(val page: Int) : MainEffect
+    data class OnNavigate(val mode: NavigationMode) : MainEffect
     data class ShowMessage(val message: String) : MainEffect
 }

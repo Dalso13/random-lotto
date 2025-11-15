@@ -1,5 +1,9 @@
 package com.jdw.random_lotto.presentation.main
 
+import android.app.Activity
+import android.os.SystemClock
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,11 +21,16 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -32,6 +41,7 @@ import com.jdw.random_lotto.common.util.DrawerMenu
 import com.jdw.random_lotto.common.util.NavigationMode
 import com.jdw.random_lotto.common.util.ThemeMode
 import com.jdw.random_lotto.common.util.ThemeStore
+import com.jdw.random_lotto.presentation.common.effect.AppSnackbar
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditScreen
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditViewModel
 import com.jdw.random_lotto.presentation.lotto.result.LottoResultScreen
@@ -61,6 +71,15 @@ fun MainScreen(
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val activity = context as? Activity
+
+    // Effect 처리: 스낵바/다이얼로그 등 일회성
+    // 효율을 위해 최상위에서 하나만 생성
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // 3초 이내 두 번 누르면 종료
+    var lastBackPressed by remember { mutableLongStateOf(0L) }
+    val backIntervalMs = 3_000L
 
     // Effect 처리: 스크롤/네비 등 일회성
     LaunchedEffect(Unit) {
@@ -70,7 +89,10 @@ fun MainScreen(
                     pagerState.animateScrollToPage(effect.page)
                 }
                 is MainEffect.ShowMessage -> {
-                    // Snackbar 등으로 처리 가능
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+                is MainEffect.OnNavigate -> {
+                    onNavigate(effect.mode)
                 }
             }
         }
@@ -83,7 +105,19 @@ fun MainScreen(
         }
     }
 
+    // 시스템 뒤로가기
+    BackHandler {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastBackPressed <= backIntervalMs) {
+            activity?.finish()
+        } else {
+            lastBackPressed = now
+            Toast.makeText(context, "한 번 더 누르면 종료됩니다", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { AppSnackbar(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("로또") },
@@ -149,8 +183,8 @@ fun MainScreen(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (state.tabs[page]) {
-                    BottomMode.VIEW -> LottoResultScreen(state.selectedTopTab, lottoResultVm)
-                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm, onNavigate)
+                    BottomMode.VIEW -> LottoResultScreen(state.selectedTopTab, lottoResultVm) { message -> scope.launch {  snackbarHostState.showSnackbar(message = message) } }
+                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm, { mode -> onNavigate(mode) }) { message -> scope.launch {  snackbarHostState.showSnackbar(message = message) } }
                 }
             }
         }
