@@ -1,4 +1,4 @@
-package com.jdw.random_lotto.domain.lotto.useCase
+package com.jdw.random_lotto.domain.lotto.useCase.result
 
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
@@ -12,6 +12,7 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,7 +60,7 @@ class LottoLoadUseCaseImpl @Inject constructor(
 
         // 이번주 앵커(해당 주의 지정 요일/시각, KST)
         val today = now.withZoneSameInstant(kst).toLocalDate()
-        val thisWeekAnchor = today.with(java.time.temporal.TemporalAdjusters.nextOrSame(dow))
+        val thisWeekAnchor = today.with(TemporalAdjusters.nextOrSame(dow))
             .atTime(time)
             .atZone(kst)
 

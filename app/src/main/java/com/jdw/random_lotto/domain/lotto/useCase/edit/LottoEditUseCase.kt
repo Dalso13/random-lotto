@@ -1,4 +1,4 @@
-package com.jdw.random_lotto.domain.lotto.useCase
+package com.jdw.random_lotto.domain.lotto.useCase.edit
 
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType

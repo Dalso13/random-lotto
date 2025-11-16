@@ -5,8 +5,8 @@ import com.jdw.random_lotto.common.base.BaseViewModel
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.data.lotto.db.toEntity
-import com.jdw.random_lotto.domain.lotto.useCase.LottoEditUseCase
-import com.jdw.random_lotto.domain.lotto.useCase.LottoSaveUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.edit.LottoEditUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.edit.LottoSaveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

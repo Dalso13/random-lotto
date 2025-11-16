@@ -5,11 +5,11 @@ import com.jdw.random_lotto.common.base.BaseViewModel
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.Segment
-import com.jdw.random_lotto.domain.lotto.useCase.LottoAnnuityWinningUseCase
-import com.jdw.random_lotto.domain.lotto.useCase.LottoCheckParams
-import com.jdw.random_lotto.domain.lotto.useCase.LottoCheckUseCase
-import com.jdw.random_lotto.domain.lotto.useCase.LottoLoadUseCase
-import com.jdw.random_lotto.domain.lotto.useCase.LottoStandardWinningUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.result.LottoAnnuityWinningUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.result.LottoCheckParams
+import com.jdw.random_lotto.domain.lotto.useCase.result.LottoCheckUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.result.LottoLoadUseCase
+import com.jdw.random_lotto.domain.lotto.useCase.result.LottoStandardWinningUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
