@@ -94,8 +94,7 @@ fun LottoResultScreen(
                 LottoSkeletonList()
             } else {
                 LottoResultList(
-                    state = state,
-                    selectedTab = selectedTab,
+                    list = state.resultItems,
                 )
             }
         }
