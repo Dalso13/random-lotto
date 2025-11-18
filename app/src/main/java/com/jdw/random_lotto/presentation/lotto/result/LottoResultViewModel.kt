@@ -5,6 +5,7 @@ import com.jdw.random_lotto.common.base.BaseViewModel
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.Segment
+import com.jdw.random_lotto.domain.lotto.useCase.history.LottoHistorySaveUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.result.LottoAnnuityWinningUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.result.LottoCheckParams
 import com.jdw.random_lotto.domain.lotto.useCase.result.LottoCheckUseCase
@@ -25,9 +26,12 @@ class LottoResultViewModel @Inject constructor(
     private val loadUseCase: LottoLoadUseCase,
     private val checkUseCase: LottoCheckUseCase,
     private val lottoStandardWinningUseCase: LottoStandardWinningUseCase,
-    private val lottoAnnuityWinningUseCase: LottoAnnuityWinningUseCase
-) : BaseViewModel<LottoResultState, LottoResultIntent, LottoResultEffect>( LottoResultState() ) {
+    private val lottoAnnuityWinningUseCase: LottoAnnuityWinningUseCase,
+    private val historySaveUseCase: LottoHistorySaveUseCase
+) : BaseViewModel<LottoResultState, LottoResultIntent, LottoResultEffect>(LottoResultState()) {
 
+    // 당첨 히스토리 저장 여부 체크용
+    private val savedHistoryTypes = mutableSetOf<LottoType>()
 
     init {
 
@@ -55,20 +59,24 @@ class LottoResultViewModel @Inject constructor(
         reduce { it.copy(isLoading = true) }
 
         val standardDeferred = async(Dispatchers.IO) { lottoStandardWinningUseCase(Unit) }
-        val annuityDeferred  = async(Dispatchers.IO) { lottoAnnuityWinningUseCase(Unit) }
+        val annuityDeferred = async(Dispatchers.IO) { lottoAnnuityWinningUseCase(Unit) }
 
         val standard = standardDeferred.await()
-        val annuity  = annuityDeferred.await()
+        val annuity = annuityDeferred.await()
 
         if (standard is LottoResult.Fail || annuity is LottoResult.Fail) {
             Timber.e("Error fetching winning data: Standard=$standard, Annuity=$annuity")
-            viewModelScope.launch {  emit(LottoResultEffect.ShowDialog(
-                message = "당첨 번호를 불러오는 중 오류가 발생했습니다. 다시 시도할까요?",
-                confirmText = "재시도",
-                cancelText = "닫기",
-                confirmIntent = LottoResultIntent.reInit,
-                cancelIntent = null
-            )) }
+            viewModelScope.launch {
+                emit(
+                    LottoResultEffect.ShowDialog(
+                        message = "당첨 번호를 불러오는 중 오류가 발생했습니다. 다시 시도할까요?",
+                        confirmText = "재시도",
+                        cancelText = "닫기",
+                        confirmIntent = LottoResultIntent.reInit,
+                        cancelIntent = null
+                    )
+                )
+            }
             reduce { it.copy(isLoading = false) }
 
             return@coroutineScope
@@ -118,6 +126,11 @@ class LottoResultViewModel @Inject constructor(
                     when (result) {
                         is LottoResult.Success -> {
                             reduce { it.copy(resultItems = result.value) }
+
+                            // 히스토리 저장
+                            withContext(Dispatchers.IO) {
+                                saveLottoHistory(type)
+                            }
                         }
 
                         is LottoResult.Fail -> {
@@ -133,6 +146,41 @@ class LottoResultViewModel @Inject constructor(
             }
 
             reduce { it.copy(isLoading = false) }
+        }
+    }
+
+    /**
+     * 당첨 히스토리 저장
+     * @param type - 로또 타입
+     */
+    private suspend fun saveLottoHistory(type: LottoType) {
+
+        // 이미 저장된 타입이면 종료
+        val isFirst = savedHistoryTypes.add(type)
+        if (!isFirst) return
+
+
+        // 저장할 결과가 없으면 종료
+        if (_state.value.resultItems.isEmpty()) return
+
+        // 회차 정보 가져오기
+        val round = if (type == LottoType.STANDARD) {
+            _state.value.standardWinningModel?.round ?: return
+        } else {
+            _state.value.annuityWinningModel?.round ?: return
+        }
+
+        // 히스토리 저장
+        val result = historySaveUseCase(Pair(_state.value.resultItems, round))
+
+        when (result) {
+            is LottoResult.Success -> {
+                Timber.d("Lotto history saved: ${result.value} entries")
+            }
+
+            is LottoResult.Fail -> {
+                Timber.e("Error saving lotto history: ${result.message}")
+            }
         }
     }
 }

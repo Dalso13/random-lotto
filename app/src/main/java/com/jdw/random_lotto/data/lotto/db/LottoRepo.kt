@@ -28,7 +28,7 @@ class LottoRepoImpl(
     override suspend fun clear(type: LottoType, start: Long, end: Long) = dao.clear(type, start, end)
     override suspend fun loadHistory(type: LottoType?, orderBy: OrderBy, page: Int, pageSize: Int): List<LottoHistoryEntity> =
         dao.loadHistory(lottoHistoryQuery(type, orderBy, page))
-    override suspend fun addAllHistory(item: List<LottoHistoryEntity>): List<Long> = dao.upsertAllHistory(item)
+    override suspend fun addAllHistory(item: List<LottoHistoryEntity>): List<Long> = dao.insertAllHistory(item)
 }
 
 /**

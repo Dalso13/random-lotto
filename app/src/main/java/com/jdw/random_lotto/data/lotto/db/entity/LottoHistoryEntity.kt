@@ -18,7 +18,15 @@ import com.jdw.random_lotto.common.util.LottoType
  */
 @Entity(
     tableName = "lottoHistory",
-    indices = [Index(value = ["rowCreatedAt"])]
+    indices = [
+        Index(value = ["rowCreatedAt"]),
+
+        // number 와 sourceCreatedAt 의 복합 유니크 인덱스
+        Index(
+            value = ["number", "sourceCreatedAt"],
+            unique = true
+        )
+    ]
 )
 data class LottoHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

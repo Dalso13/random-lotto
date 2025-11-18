@@ -1,12 +1,13 @@
 package com.jdw.random_lotto.data.lotto.db
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.Upsert
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.jdw.random_lotto.common.util.LottoType
-import com.jdw.random_lotto.common.util.OrderBy
 import com.jdw.random_lotto.data.lotto.db.entity.LottoEntity
 import com.jdw.random_lotto.data.lotto.db.entity.LottoHistoryEntity
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,6 @@ interface LottoDao {
     @RawQuery
     fun loadHistory(query: SupportSQLiteQuery): List<LottoHistoryEntity>
 
-    @Upsert
-    suspend fun upsertAllHistory(items: List<LottoHistoryEntity>): List<Long>
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAllHistory(items: List<LottoHistoryEntity>): List<Long>
 }

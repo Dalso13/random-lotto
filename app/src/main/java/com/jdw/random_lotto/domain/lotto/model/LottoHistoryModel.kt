@@ -21,3 +21,20 @@ data class LottoHistoryModel(
     val rowCreatedAt: Long = 0L,
     val rank: Int,
 )
+
+/**
+ * LottoResultModel을 LottoHistoryModel로 변환
+ * 당첨된 경우에만 변환, 낙첨인 경우 null 반환
+ */
+fun LottoResultModel.toHistoryModel(round: Int): LottoHistoryModel? {
+    if (this.evaluation !is Evaluation.Win) {
+        return null
+    }
+    return LottoHistoryModel(
+        round = round,
+        number = this.number,
+        type = this.type,
+        sourceCreatedAt = this.createdAt,
+        rank = this.evaluation.rank
+    )
+}

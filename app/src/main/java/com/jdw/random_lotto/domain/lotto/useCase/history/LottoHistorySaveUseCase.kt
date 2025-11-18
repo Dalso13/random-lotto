@@ -5,16 +5,22 @@ import com.jdw.random_lotto.data.lotto.db.LottoRepo
 import com.jdw.random_lotto.data.lotto.db.toEntity
 import com.jdw.random_lotto.domain.core.useCase.SuspendResultUseCase
 import com.jdw.random_lotto.domain.core.useCase.SuspendUseCase
-import com.jdw.random_lotto.domain.lotto.model.LottoHistoryModel
+import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
+import com.jdw.random_lotto.domain.lotto.model.toHistoryModel
 
-interface LottoHistorySaveUseCase : SuspendUseCase<List<LottoHistoryModel>, LottoResult<Int>>
+interface LottoHistorySaveUseCase : SuspendUseCase<Pair<List<LottoResultModel>, Int>, LottoResult<Int>>
 
 class LottoHistorySaveUseCaseImpl(
     private val repo: LottoRepo
-) : SuspendResultUseCase<List<LottoHistoryModel>, Int>(), LottoHistorySaveUseCase {
-    override suspend fun execute(params: List<LottoHistoryModel>): LottoResult<Int> {
+) : SuspendResultUseCase<Pair<List<LottoResultModel>, Int>, Int>(), LottoHistorySaveUseCase {
+    override suspend fun execute(params: Pair<List<LottoResultModel>, Int>): LottoResult<Int> {
+        val (list, round) = params
+        val historyList = list.mapNotNull { it.toHistoryModel(round) }
+
+        if (historyList.isEmpty()) return LottoResult.Success(0)
+
         return runCatching {
-            repo.addAllHistory(params.map { it.toEntity() })
+            repo.addAllHistory(historyList.map { it.toEntity() })
         }.fold(
             onSuccess = { data ->
                 LottoResult.Success(data.size)
