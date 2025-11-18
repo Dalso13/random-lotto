@@ -91,6 +91,13 @@ class LottoHistoryViewModel @Inject constructor(
                     emit(LottoHistoryEffect.ShowSnackbar("히스토리 불러오기 실패: ${result.message}"))
                 }
             }
+
+            // 최초 로드 플래그 해제
+            if (state.value.isFirstLoad) {
+                reduce {
+                    it.copy(isFirstLoad = false)
+                }
+            }
         }
     }
 }

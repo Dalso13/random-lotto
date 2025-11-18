@@ -9,6 +9,7 @@ data class LottoHistoryState(
     val type: LottoType? = null,                                // 로또 타입
     val orderBy: OrderBy = OrderBy.CREATED_AT_DESC,             // 정렬 방식
     val historyList: List<LottoHistoryModel> = emptyList(),     // 로또 히스토리 목록
+    val isFirstLoad: Boolean = true,                            // 최초 로드 여부
     val isLoading: Boolean = false,                             // 로딩 상태
 )
 
