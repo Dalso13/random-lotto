@@ -39,7 +39,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.jdw.random_lotto.common.util.qr.QRCodeDecoder.decodeQrFromBitmap
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.RGBLuminanceSource
+import com.jdw.random_lotto.common.util.qr.QRCodeDecoder.decodeQrFromSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,51 +54,66 @@ import kotlinx.coroutines.withContext
 @Composable
 fun QRGalleryScreen(
     onResult: (String) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val reader = remember { MultiFormatReader() }
 
     var isProcessing by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     // 갤러리 런처
-    val galleryLauncher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.GetContent()
-        ) { uri ->
-            if (uri == null) return@rememberLauncherForActivityResult
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri == null) {
+            if (!isProcessing) {
+                onClose()
+            }
+            return@rememberLauncherForActivityResult
+        }
 
-            isProcessing = true
-            errorMessage = null
+        if (isProcessing) return@rememberLauncherForActivityResult
 
-            scope.launch {
-                val bitmap = withContext(Dispatchers.IO) {
-                    context.contentResolver.openInputStream(uri)?.use { input ->
-                        BitmapFactory.decodeStream(input)
-                    }
-                }
+        isProcessing = true
+        errorMessage = null
 
-                if (bitmap == null) {
-                    isProcessing = false
-                    errorMessage = "이미지를 불러오지 못했어요."
-                    return@launch
-                }
-
-                val text = withContext(Dispatchers.Default) {
-                    decodeQrFromBitmap(bitmap)
-                }
-
-                isProcessing = false
-
-                if (!text.isNullOrBlank()) {
-                    onResult(text)
-                    onClose()
-                } else {
-                    errorMessage = "QR 코드를 인식하지 못했어요."
+        scope.launch {
+            val bitmap = withContext(Dispatchers.IO) {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    BitmapFactory.decodeStream(input)
                 }
             }
+
+            if (bitmap == null) {
+                isProcessing = false
+                errorMessage = "이미지를 불러오지 못했어요."
+                return@launch
+            }
+
+            val width = bitmap.width
+            val height = bitmap.height
+            val pixels = IntArray(width * height)
+
+            bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+
+            val source = RGBLuminanceSource(width, height, pixels)
+
+            val text = withContext(Dispatchers.Default) {
+                decodeQrFromSource(reader, source)
+            }
+
+            isProcessing = false
+
+            if (!text.isNullOrBlank()) {
+                onResult(text)
+            } else {
+                errorMessage = "QR 코드를 인식하지 못했어요."
+            }
         }
+    }
 
     // 화면 진입 시 바로 갤러리 열기
     LaunchedEffect(Unit) {
@@ -134,7 +151,12 @@ fun QRGalleryScreen(
             )
 
             IconButton(
-                onClick = { galleryLauncher.launch("image/*") }
+                onClick = {
+                    if (!isProcessing) {
+                        errorMessage = null
+                        galleryLauncher.launch("image/*")
+                    }
+                }
             ) {
                 Icon(
                     imageVector = Icons.Default.Image,
@@ -171,9 +193,9 @@ fun QRGalleryScreen(
         }
     }
 
-
+    // 로딩 다이얼로그
     if (isProcessing) {
-        Dialog(onDismissRequest = { }) {
+        Dialog(onDismissRequest = { /* 강제 닫기 방지 */ }) {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -195,3 +217,4 @@ fun QRGalleryScreen(
         }
     }
 }
+

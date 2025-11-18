@@ -44,10 +44,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
-import com.google.zxing.PlanarYUVLuminanceSource
-import com.google.zxing.common.HybridBinarizer
+import com.jdw.random_lotto.common.util.qr.QRCodeDecoder
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -261,7 +259,7 @@ private fun QRMaskOverlay(
     }
 }
 
-/** CameraX ImageProxy + ZXing으로 QR 처리 (원본 로직을 Compose로 옮김) */
+/** CameraX ImageProxy + ZXing으로 QR 처리 */
 @OptIn(ExperimentalGetImage::class)
 private fun processImageForQr(
     previewView: PreviewView,
@@ -278,50 +276,58 @@ private fun processImageForQr(
     val imageWidth = mediaImage.width
     val imageHeight = mediaImage.height
 
+    // PreviewView 크기 (화면 기준 컨테이너)
     val previewWidth = previewView.width.toFloat().coerceAtLeast(1f)
     val previewHeight = previewView.height.toFloat().coerceAtLeast(1f)
 
-    // 실제 가이드 박스는 화면 너비 기준 정사각형
-    val guideSize = previewWidth * guideRatio
-    val guideLeft = (previewWidth - guideSize) / 2f
-    val guideTop = (previewHeight - guideSize) / 2f
+    // 1) 화면 기준 중앙 정사각형 crop 계산
+    val guideCrop = QRCodeDecoder.calcCenterSquareCrop(
+        containerWidth = previewWidth.toInt(),
+        containerHeight = previewHeight.toInt(),
+        guideRatio = guideRatio
+    )
 
-    // PreviewView와 실제 ImageProxy 크기 비율 보정
+    // 2) PreviewView -> 실제 YUV 이미지 좌표로 스케일링
     val scaleX = imageWidth.toFloat() / previewWidth
     val scaleY = imageHeight.toFloat() / previewHeight
 
-    // Camera 이미지 기준 크롭 영역 (좌상단/폭/높이)
-    val cropLeft = (guideLeft * scaleX).toInt().coerceIn(0, imageWidth - 1)
-    val cropTop = (guideTop * scaleY).toInt().coerceIn(0, imageHeight - 1)
-    val cropWidth = (guideSize * scaleX).toInt().coerceIn(1, imageWidth - cropLeft)
-    val cropHeight = (guideSize * scaleY).toInt().coerceIn(1, imageHeight - cropTop)
+    val imageCrop = QRCodeDecoder.scaleCropRect(
+        cropRect = guideCrop,
+        scaleX = scaleX,
+        scaleY = scaleY,
+        maxWidth = imageWidth,
+        maxHeight = imageHeight
+    )
 
+    // 3) Y 버퍼 추출
     val yBuffer = mediaImage.planes[0].buffer
     val ySize = yBuffer.remaining()
     val yData = ByteArray(ySize)
     yBuffer.get(yData)
 
     try {
-        val source = PlanarYUVLuminanceSource(
-            yData,
-            imageWidth,
-            imageHeight,
-            cropLeft,
-            cropTop,
-            cropWidth,
-            cropHeight,
-            /* reverseHorizontal = */ false
+        // 4) YUV LuminanceSource 생성
+        val source = QRCodeDecoder.buildYuvLuminanceSource(
+            yData = yData,
+            imageWidth = imageWidth,
+            imageHeight = imageHeight,
+            crop = imageCrop
         )
-        val bitmap = BinaryBitmap(HybridBinarizer(source))
-        val result = reader.decode(bitmap)
 
-        // 성공
-        previewView.post {
-            onSuccess(result.text)
+        // 5) 공통 디코더로 QR 텍스트 추출
+        val text = QRCodeDecoder.decodeQrFromSource(
+            reader = reader,
+            source = source,
+        )
+
+        if (text != null) {
+            previewView.post {
+                onSuccess(text)
+            }
         }
     } catch (_: Throwable) {
+        // 필요시 로그
     } finally {
-        reader.reset()
         imageProxy.close()
         onFinally()
     }
