@@ -5,6 +5,7 @@ import com.jdw.random_lotto.common.base.BaseViewModel
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.data.lotto.db.toEntity
+import com.jdw.random_lotto.domain.lotto.useCase.edit.LottoConvertUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.edit.LottoEditUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.edit.LottoSaveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LottoEditViewModel @Inject constructor(
     private val saveUseCase: LottoSaveUseCase,
-    private val editUseCase: LottoEditUseCase
+    private val editUseCase: LottoEditUseCase,
+    private val convertUseCase: LottoConvertUseCase
 ) : BaseViewModel<LottoEditState, LottoEditIntent, LottoEditEffect>(
     initialState = LottoEditState()
 ) {
@@ -30,6 +32,7 @@ class LottoEditViewModel @Inject constructor(
             is LottoEditIntent.Edit -> edit(intent.type)
             is LottoEditIntent.Save -> save(intent.type)
             is LottoEditIntent.Delete -> delete(intent.type)
+            is LottoEditIntent.ScanToLotto -> scanToLotto(intent.result)
         }
     }
 
@@ -118,12 +121,34 @@ class LottoEditViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 특정 타입에 대해 편집 리스트에서 모든 항목 제거
+     * @param type - 로또 타입
+     */
     private fun delete(type: LottoType) {
         reduce { st ->
             st.copy(
                 insertItems = st.insertItems.filterNot { it.type == type },
                 deselectedKeysByType = st.deselectedKeysByType + (type to emptySet())
             )
+        }
+    }
+
+    /**
+     * 스캔한 QR 코드를 로또 항목으로 변환하여 편집 리스트에 추가
+     * @param result - 스캔한 QR 코드 결과 문자열
+     */
+    private fun scanToLotto(result: String) {
+        when (val model = convertUseCase(result)) {
+            is LottoResult.Success -> {
+                // 변환 성공
+                reduce { it.copy(insertItems = it.insertItems + model.value) }
+            }
+
+            is LottoResult.Fail -> {
+                // 변환 실패
+                viewModelScope.launch { emit(LottoEditEffect.ShowSnackbar("QR 코드 변환 실패: $result")) }
+            }
         }
     }
 }

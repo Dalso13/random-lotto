@@ -11,12 +11,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jdw.random_lotto.common.util.ThemeMode
 import com.jdw.random_lotto.common.util.ThemeStore
+import com.jdw.random_lotto.presentation.lotto.edit.LottoEditIntent
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditViewModel
 import com.jdw.random_lotto.presentation.main.MainScreen
 import com.jdw.random_lotto.presentation.qr.QRGalleryScreen
 import com.jdw.random_lotto.presentation.qr.QRScanScreen
 import com.jdw.random_lotto.ui.theme.Random_lottoTheme
-import timber.log.Timber
 
 @Composable
 fun NavScreen() {
@@ -48,7 +48,7 @@ fun NavScreen() {
             composable("qrScan") {
                 QRScanScreen(
                     onResult = { result ->
-                        Timber.tag("QRScanner").d("QR Result: $result")
+                        lottoEditVm.dispatch(LottoEditIntent.ScanToLotto(result))
                         nav.popBackStack()
                     },
                     onClose = {
@@ -61,7 +61,7 @@ fun NavScreen() {
             composable("qrGallery") {
                 QRGalleryScreen(
                     onResult = { result ->
-                        Timber.tag("QRScanner").d("QR Result: $result")
+                        lottoEditVm.dispatch(LottoEditIntent.ScanToLotto(result))
                         nav.popBackStack()
                     },
                     onClose = {

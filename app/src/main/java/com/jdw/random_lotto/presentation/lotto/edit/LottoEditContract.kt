@@ -21,6 +21,7 @@ sealed interface LottoEditIntent {
     data class Edit(val type: LottoType): LottoEditIntent                                   // 추가 (무작위 번호 생성)
     data class Save(val type: LottoType) : LottoEditIntent                                  // 저장 (DB에 삽입)
     data class Delete(val type: LottoType) : LottoEditIntent                                // 제거 (리스트에서)
+    data class ScanToLotto(val result: String) : LottoEditIntent                            // 스캔한 QR 코드를 로또 항목으로 변환
 }
 
 // ui effect (일회성 이벤트)
