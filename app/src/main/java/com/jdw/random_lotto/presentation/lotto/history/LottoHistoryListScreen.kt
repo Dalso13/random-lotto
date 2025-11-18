@@ -1,4 +1,4 @@
-package com.jdw.random_lotto.presentation.lotto.result
+package com.jdw.random_lotto.presentation.lotto.history
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,16 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
-import com.jdw.random_lotto.presentation.lotto.result.components.LottoResultTicketCard
+import com.jdw.random_lotto.domain.lotto.model.LottoHistoryModel
+import com.jdw.random_lotto.presentation.lotto.history.components.LottoHistoryTicketCard
 
 /**
- * 로또 결과 리스트
- * @param list 표시할 로또 결과 목록
+ * 로또 당첨 이력 리스트
+ * @param list 표시할 로또 당첨 이력 목록
  */
 @Composable
-fun LottoResultList(
-    list: List<LottoResultModel>
+fun LottoHistoryListScreen(
+    list: List<LottoHistoryModel>,
 ) {
     val cs = MaterialTheme.colorScheme
     val tp = MaterialTheme.typography
@@ -34,7 +34,7 @@ fun LottoResultList(
         contentPadding = PaddingValues(12.dp)
     ) {
         items(list, key = { it.id }) { item ->
-            LottoResultTicketCard(
+            LottoHistoryTicketCard(
                 type = item.type,
                 item = item
             )

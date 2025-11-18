@@ -13,6 +13,7 @@ import com.jdw.random_lotto.common.util.ThemeMode
 import com.jdw.random_lotto.common.util.ThemeStore
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditIntent
 import com.jdw.random_lotto.presentation.lotto.edit.LottoEditViewModel
+import com.jdw.random_lotto.presentation.lotto.history.LottoHistoryScreen
 import com.jdw.random_lotto.presentation.main.MainScreen
 import com.jdw.random_lotto.presentation.qr.QRGalleryScreen
 import com.jdw.random_lotto.presentation.qr.QRScanScreen
@@ -68,6 +69,11 @@ fun NavScreen() {
                         nav.popBackStack()
                     }
                 )
+            }
+
+            // 히스토리 화면
+            composable("history") {
+                LottoHistoryScreen()
             }
         }
     }

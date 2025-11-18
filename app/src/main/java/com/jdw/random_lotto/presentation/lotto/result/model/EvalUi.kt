@@ -1,6 +1,7 @@
 package com.jdw.random_lotto.presentation.lotto.result.model
 
 import com.jdw.random_lotto.domain.lotto.model.Evaluation
+import com.jdw.random_lotto.domain.lotto.model.LottoHistoryModel
 import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
 
 // 화면 요약 전용 UI 모델
@@ -58,6 +59,23 @@ fun LottoResultModel.toEvalUi(): EvalUi = when (this.evaluation) {
         rankText = "미확인",
         summary = "아직 확인하지 않았어요",
         badge = EvalBadge.UNCHECKED
+    )
+}
+
+fun LottoHistoryModel.toEvalUi(): EvalUi {
+    val matchedNums = this.number
+        .filter { it in this.number.indices }
+        .map { this.number[it] }
+        .toSet()
+    val rankText = "${this.rank}등"
+    val summary = "${matchedNums.size}개 일치 → ${this.rank}등"
+    return EvalUi(
+        score = 1000 - (this.rank * 10) + matchedNums.size,
+        matched = matchedNums,
+        rank = this.rank,
+        rankText = rankText,
+        summary = summary,
+        badge = EvalBadge.WIN
     )
 }
 

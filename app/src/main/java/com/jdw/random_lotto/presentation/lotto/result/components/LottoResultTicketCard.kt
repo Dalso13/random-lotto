@@ -1,19 +1,13 @@
 package com.jdw.random_lotto.presentation.lotto.result.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jdw.random_lotto.common.util.LottoType
@@ -30,11 +23,12 @@ import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
 import com.jdw.random_lotto.presentation.common.components.CapsuleChip
 import com.jdw.random_lotto.presentation.common.components.NumbersFlow
 import com.jdw.random_lotto.presentation.common.components.rememberCapsuleStyle
+import com.jdw.random_lotto.presentation.common.util.toMmDd
 import com.jdw.random_lotto.presentation.lotto.result.model.EvalBadge
 import com.jdw.random_lotto.presentation.lotto.result.model.toEvalUi
 
 @Composable
-fun TicketCard(
+fun LottoResultTicketCard(
     type: LottoType,
     item: LottoResultModel
 ) {
@@ -123,74 +117,3 @@ fun TicketCard(
         }
     }
 }
-
-/**
- * 티켓 카드 스켈레톤
- */
-@Composable
-fun TicketCardSkeleton() {
-    val cs = MaterialTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(cs.surfaceVariant)
-            .padding(12.dp)
-    ) {
-        Row(Modifier.fillMaxSize()) {
-            // 왼쪽 동그란 아이콘 자리
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(cs.surface)
-            )
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-            ) {
-                // 제목 자리
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.5f)
-                        .height(14.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(cs.surface)
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                // 내용 1줄
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(12.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(cs.surface)
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                // 내용 1줄 더
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(12.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(cs.surface)
-                )
-            }
-        }
-    }
-}
-
-
-private fun Long.toMmDd(): String = java.time.Instant.ofEpochMilli(this)
-    .atZone(java.time.ZoneId.systemDefault())
-    .toLocalDate()
-    .let { "%02d/%02d".format(it.monthValue, it.dayOfMonth) }

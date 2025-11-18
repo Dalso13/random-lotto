@@ -3,23 +3,19 @@ package com.jdw.random_lotto.presentation.lotto.result
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.Segment
+import com.jdw.random_lotto.presentation.common.components.LottoSkeletonList
 import com.jdw.random_lotto.presentation.common.effect.AppDialog
-import com.jdw.random_lotto.presentation.common.effect.AppSnackbar
 import com.jdw.random_lotto.presentation.lotto.result.components.RoundHeader
 
 // 결과 화면 ----------------------------------------------------------------
@@ -95,7 +91,7 @@ fun LottoResultScreen(
 
             // 리스트
             if (state.isLoading) {
-                LottoResultSkeletonList()
+                LottoSkeletonList()
             } else {
                 LottoResultList(
                     state = state,
