@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -31,7 +33,8 @@ import com.jdw.random_lotto.presentation.lotto.history.components.LottoTypeFilte
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LottoHistoryScreen(
-    vm: LottoHistoryViewModel = hiltViewModel()
+    vm: LottoHistoryViewModel = hiltViewModel(),
+    onNavBack: () -> Unit,
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
 
@@ -72,6 +75,16 @@ fun LottoHistoryScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("당첨 이력") },
+                navigationIcon = {
+                    androidx.compose.material3.IconButton(
+                        onClick = { onNavBack() }
+                    ) {
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "뒤로가기"
+                        )
+                    }
+                }
             )
         },
     ) { innerPadding ->

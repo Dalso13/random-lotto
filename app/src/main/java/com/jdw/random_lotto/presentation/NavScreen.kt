@@ -73,7 +73,11 @@ fun NavScreen() {
 
             // 히스토리 화면
             composable("history") {
-                LottoHistoryScreen()
+                LottoHistoryScreen(
+                    onNavBack = {
+                        nav.popBackStack()
+                    }
+                )
             }
         }
     }
