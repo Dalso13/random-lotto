@@ -46,3 +46,5 @@ val OnTertiaryMintDark = Color(0xFF00383D)
 
 val TertiaryMintContainerDark = Color(0xFF005A60)
 val OnTertiaryMintContainerDark = Color(0xFF8CF7F4)
+
+val white = Color(0xFFFFFFFF)

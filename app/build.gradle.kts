@@ -100,6 +100,9 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.5.1")
     implementation("androidx.camera:camera-view:1.5.1")
     implementation("com.google.zxing:core:3.5.4")
+
+    // Lottie
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
 }
 
 ksp {

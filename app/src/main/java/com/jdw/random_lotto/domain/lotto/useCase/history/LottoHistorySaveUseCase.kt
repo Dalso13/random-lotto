@@ -7,10 +7,11 @@ import com.jdw.random_lotto.domain.core.useCase.SuspendResultUseCase
 import com.jdw.random_lotto.domain.core.useCase.SuspendUseCase
 import com.jdw.random_lotto.domain.lotto.model.LottoResultModel
 import com.jdw.random_lotto.domain.lotto.model.toHistoryModel
+import javax.inject.Inject
 
 interface LottoHistorySaveUseCase : SuspendUseCase<Pair<List<LottoResultModel>, Int>, LottoResult<Int>>
 
-class LottoHistorySaveUseCaseImpl(
+class LottoHistorySaveUseCaseImpl @Inject constructor(
     private val repo: LottoRepo
 ) : SuspendResultUseCase<Pair<List<LottoResultModel>, Int>, Int>(), LottoHistorySaveUseCase {
     override suspend fun execute(params: Pair<List<LottoResultModel>, Int>): LottoResult<Int> {

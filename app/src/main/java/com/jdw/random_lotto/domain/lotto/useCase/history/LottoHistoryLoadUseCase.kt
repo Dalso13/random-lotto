@@ -8,6 +8,7 @@ import com.jdw.random_lotto.data.lotto.db.toModel
 import com.jdw.random_lotto.domain.core.useCase.SuspendResultUseCase
 import com.jdw.random_lotto.domain.core.useCase.SuspendUseCase
 import com.jdw.random_lotto.domain.lotto.model.LottoHistoryModel
+import javax.inject.Inject
 
 data class LottoHistoryLoadParams(
     val type: LottoType?,
@@ -18,7 +19,7 @@ data class LottoHistoryLoadParams(
 
 interface LottoHistoryLoadUseCase : SuspendUseCase<LottoHistoryLoadParams, LottoResult<List<LottoHistoryModel>>>
 
-class LottoHistoryLoadUseCaseImpl(
+class LottoHistoryLoadUseCaseImpl @Inject constructor(
     private val repo: LottoRepo
 ) : SuspendResultUseCase<LottoHistoryLoadParams, List<LottoHistoryModel>>(), LottoHistoryLoadUseCase {
     override suspend fun execute(params: LottoHistoryLoadParams): LottoResult<List<LottoHistoryModel>> {
