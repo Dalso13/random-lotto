@@ -18,10 +18,7 @@ enum class EvalBadge { WIN, LOSE, PENDING, UNCHECKED }
 
 fun LottoResultModel.toEvalUi(): EvalUi = when (this.evaluation) {
     is Evaluation.Win -> {
-        val matchedNums = this.evaluation.matchIndices
-            .filter { it in this.number.indices }
-            .map { this.number[it] }
-            .toSet()
+        val matchedNums = this.evaluation.matchIndices.toMatchedNumbers(number)
         val rankText = "${this.evaluation.rank}등"
         val summary = "${matchedNums.size}개 일치 → ${this.evaluation.rank}등"
         EvalUi(
@@ -63,10 +60,7 @@ fun LottoResultModel.toEvalUi(): EvalUi = when (this.evaluation) {
 }
 
 fun LottoHistoryModel.toEvalUi(): EvalUi {
-    val matchedNums = this.number
-        .filter { it in this.number.indices }
-        .map { this.number[it] }
-        .toSet()
+    val matchedNums = this.matchIndices.toMatchedNumbers(this.number)
     val rankText = "${this.rank}등"
     val summary = "${matchedNums.size}개 일치 → ${this.rank}등"
     return EvalUi(
@@ -83,3 +77,15 @@ private fun Long.toMmDdHHmm(): String = java.time.Instant.ofEpochMilli(this)
     .atZone(java.time.ZoneId.systemDefault())
     .toLocalDateTime()
     .let { "%02d/%02d %02d:%02d".format(it.monthValue, it.dayOfMonth, it.hour, it.minute) }
+
+/**
+ * 인덱스 리스트를 실제 숫자 셋으로 변환
+ * @param numbers - 실제 숫자 리스트
+ * @return 실제 숫자 셋
+ */
+private fun List<Int>.toMatchedNumbers(numbers: List<Int>): Set<Int> {
+    return this
+        .filter { it in numbers.indices }
+        .map { numbers[it] }
+        .toSet()
+}

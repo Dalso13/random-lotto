@@ -46,8 +46,8 @@ private fun lottoHistoryQuery(
     pageSize: Int = 10
 ): SupportSQLiteQuery {
     val orderClause = when (orderBy) {
-        OrderBy.CREATED_AT_DESC -> "createdAt DESC"
-        OrderBy.CREATED_AT_ASC  -> "createdAt ASC"
+        OrderBy.CREATED_AT_DESC -> "sourceCreatedAt DESC"
+        OrderBy.CREATED_AT_ASC  -> "sourceCreatedAt ASC"
         OrderBy.RANK_DESC      -> "rank DESC"
         OrderBy.RANK_ASC       -> "rank ASC"
     }

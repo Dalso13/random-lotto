@@ -7,6 +7,7 @@ import com.jdw.random_lotto.common.util.LottoType
  * @param id - DB 아이디
  * @param round - 회차
  * @param number - 번호 리스트
+ * @param matchIndices - 맞춘 번호 인덱스 리스트
  * @param type - 복권 종류
  * @param sourceCreatedAt - 원본 생성 시각
  * @param rowCreatedAt - 행 생성 시각
@@ -16,6 +17,7 @@ data class LottoHistoryModel(
     val id: Long = 0,
     val round: Int,
     val number: List<Int>,
+    val matchIndices: List<Int>,
     val type: LottoType,
     val sourceCreatedAt: Long,
     val rowCreatedAt: Long = 0L,
@@ -35,6 +37,7 @@ fun LottoResultModel.toHistoryModel(round: Int): LottoHistoryModel? {
         number = this.number,
         type = this.type,
         sourceCreatedAt = this.createdAt,
+        matchIndices = this.evaluation.matchIndices,
         rank = this.evaluation.rank
     )
 }

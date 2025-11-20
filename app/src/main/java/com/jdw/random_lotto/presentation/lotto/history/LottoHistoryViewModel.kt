@@ -5,11 +5,13 @@ import com.jdw.random_lotto.common.base.BaseViewModel
 import com.jdw.random_lotto.common.util.LottoResult
 import com.jdw.random_lotto.common.util.LottoType
 import com.jdw.random_lotto.common.util.OrderBy
-import com.jdw.random_lotto.domain.lotto.model.LottoHistoryModel
 import com.jdw.random_lotto.domain.lotto.useCase.history.LottoHistoryLoadParams
 import com.jdw.random_lotto.domain.lotto.useCase.history.LottoHistoryLoadUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -62,16 +64,17 @@ class LottoHistoryViewModel @Inject constructor(
      */
     private fun load() {
         reduce { it.copy(isLoading = true) }
-
-        viewModelScope.launch {
-            when (val result: LottoResult<List<LottoHistoryModel>> = loadUseCase(
-                LottoHistoryLoadParams(
-                    type = state.value.type,
-                    orderBy = state.value.orderBy,
-                    page = state.value.page,
-                    pageSize = 10
+        viewModelScope.launch() {
+            when (val result = withContext(Dispatchers.IO) {
+                loadUseCase(
+                    LottoHistoryLoadParams(
+                        type = state.value.type,
+                        orderBy = state.value.orderBy,
+                        page = state.value.page,
+                        pageSize = 10
+                    )
                 )
-            )) {
+            }) {
                 is LottoResult.Success -> {
                     reduce {
                         it.copy(
@@ -80,6 +83,7 @@ class LottoHistoryViewModel @Inject constructor(
                             page = if (result.value.isNotEmpty()) it.page + 1 else it.page
                         )
                     }
+                    Timber.d("LottoHistoryViewModel.load: 성공: ${result.value.size}개 로드")
                 }
 
                 is LottoResult.Fail -> {
@@ -88,6 +92,7 @@ class LottoHistoryViewModel @Inject constructor(
                             isLoading = false
                         )
                     }
+                    Timber.d("LottoHistoryViewModel.load: 실패: ${result.message}개 로드")
                     emit(LottoHistoryEffect.ShowSnackbar("히스토리 불러오기 실패: ${result.message}"))
                 }
             }

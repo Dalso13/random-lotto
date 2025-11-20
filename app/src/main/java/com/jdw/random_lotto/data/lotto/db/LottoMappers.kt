@@ -59,6 +59,7 @@ fun LottoHistoryEntity.toModel(): LottoHistoryModel = LottoHistoryModel(
     sourceCreatedAt = sourceCreatedAt,
     rowCreatedAt = rowCreatedAt,
     rank = rank,
+    matchIndices = matchIndices,
 )
 
 /**
@@ -73,4 +74,5 @@ fun LottoHistoryModel.toEntity(now: Long = System.currentTimeMillis()): LottoHis
     sourceCreatedAt = sourceCreatedAt,
     rowCreatedAt = if (rowCreatedAt == 0L) now else rowCreatedAt,
     rank = rank,
+    matchIndices = matchIndices,
 )

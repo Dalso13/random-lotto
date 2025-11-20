@@ -8,7 +8,7 @@ import com.jdw.random_lotto.data.lotto.db.entity.LottoHistoryEntity
 
 @Database(
     entities = [LottoEntity::class, LottoHistoryEntity::class],
-    version = 2,
+    version = 5,
     exportSchema = true
 )
 
