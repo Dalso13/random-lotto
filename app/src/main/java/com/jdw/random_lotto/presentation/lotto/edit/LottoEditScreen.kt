@@ -48,7 +48,6 @@ import com.jdw.random_lotto.common.util.NavigationMode
 import com.jdw.random_lotto.common.util.permission.AppPermission
 import com.jdw.random_lotto.common.util.permission.PermissionManager
 import com.jdw.random_lotto.presentation.lotto.edit.components.LottoItem
-import com.jdw.random_lotto.presentation.lotto.result.LottoResultEffect
 
 /**
  * 복권 추가 화면
@@ -61,7 +60,8 @@ fun LottoEditScreen(
     selectedTab: LottoType,
     vm: LottoEditViewModel,
     onNavigate: (NavigationMode) -> Unit,
-    onSnackBar: (String) -> Unit
+    onSnackBar: (String) -> Unit,
+    onChangeType: (LottoType) -> Unit,
 ) {
     val cs = colorScheme
     val state by vm.state.collectAsStateWithLifecycle()
@@ -114,6 +114,9 @@ fun LottoEditScreen(
             when (effect) {
                 is LottoEditEffect.ShowSnackbar -> {
                     onSnackBar(effect.message)
+                }
+                is LottoEditEffect.ChangeType -> {
+                    onChangeType(effect.type)
                 }
             }
         }

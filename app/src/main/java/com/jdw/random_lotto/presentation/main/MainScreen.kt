@@ -21,7 +21,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -88,9 +87,11 @@ fun MainScreen(
                 is MainEffect.ChangeBottomTab -> scope.launch {
                     pagerState.animateScrollToPage(effect.page)
                 }
+
                 is MainEffect.ShowMessage -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
+
                 is MainEffect.OnNavigate -> {
                     onNavigate(effect.mode)
                 }
@@ -137,7 +138,12 @@ fun MainScreen(
                     ) {
                         DrawerMenu.entries.forEach { menu ->
                             DropdownMenuItem(
-                                text = { Text(menu.title, style = MaterialTheme.typography.titleMedium) },
+                                text = {
+                                    Text(
+                                        menu.title,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                },
                                 onClick = {
                                     mainVm.dispatch(MainIntent.ClickMenu(menu))
                                 },
@@ -170,7 +176,9 @@ fun MainScreen(
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding).fillMaxSize()
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
         ) {
             MainTopBar(
                 tabModeList = state.topTabs.toList(),
@@ -183,26 +191,43 @@ fun MainScreen(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 when (state.tabs[page]) {
-                    BottomMode.VIEW -> LottoResultScreen(state.selectedTopTab, lottoResultVm) { message -> scope.launch {  snackbarHostState.showSnackbar(message = message) } }
-                    BottomMode.ADD  -> LottoEditScreen(state.selectedTopTab, lottoEditVm, { mode -> onNavigate(mode) }) { message -> scope.launch {  snackbarHostState.showSnackbar(message = message) } }
+                    BottomMode.VIEW -> LottoResultScreen(
+                        state.selectedTopTab,
+                        lottoResultVm
+                    ) { message -> scope.launch { snackbarHostState.showSnackbar(message = message) } }
+
+                    BottomMode.ADD -> LottoEditScreen(
+                        state.selectedTopTab,
+                        lottoEditVm,
+                        { mode -> onNavigate(mode) },
+                        { message -> scope.launch { snackbarHostState.showSnackbar(message = message) } },
+                        { type ->
+                            if (type != state.selectedTopTab) {
+                                scope.launch {
+                                    mainVm.dispatch(
+                                        MainIntent.SelectTopTab(type)
+                                    )
+                                }
+                            }
+                        })
+                    }
                 }
             }
         }
-    }
 
-    if (state.themeSelectExpanded) {
-         ThemeSettingDialog(
-             onDismissRequest = {
-                mainVm.dispatch(MainIntent.ThemeSelectExpanded(false))
-             },
-             onConfirm = { selectedTheme ->
-                 // 테마 변경 처리
-                 scope.launch {
-                     mainVm.dispatch(MainIntent.ThemeSelectExpanded(false))
-                     ThemeStore.saveThemeMode(context, selectedTheme)
-                 }
-             },
-             theme = theme
-         )
+        if (state.themeSelectExpanded) {
+            ThemeSettingDialog(
+                onDismissRequest = {
+                    mainVm.dispatch(MainIntent.ThemeSelectExpanded(false))
+                },
+                onConfirm = { selectedTheme ->
+                    // 테마 변경 처리
+                    scope.launch {
+                        mainVm.dispatch(MainIntent.ThemeSelectExpanded(false))
+                        ThemeStore.saveThemeMode(context, selectedTheme)
+                    }
+                },
+                theme = theme
+            )
+        }
     }
-}

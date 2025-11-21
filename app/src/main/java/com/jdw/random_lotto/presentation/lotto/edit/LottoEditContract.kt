@@ -27,4 +27,5 @@ sealed interface LottoEditIntent {
 // ui effect (일회성 이벤트)
 sealed interface LottoEditEffect {
     data class ShowSnackbar(val message: String) : LottoEditEffect      // 스낵바 표시
+    data class ChangeType(val type: LottoType) : LottoEditEffect        // 로또 타입 변경
 }

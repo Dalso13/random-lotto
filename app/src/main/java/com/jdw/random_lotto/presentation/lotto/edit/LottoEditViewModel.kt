@@ -10,8 +10,10 @@ import com.jdw.random_lotto.domain.lotto.useCase.edit.LottoEditUseCase
 import com.jdw.random_lotto.domain.lotto.useCase.edit.LottoSaveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -139,15 +141,25 @@ class LottoEditViewModel @Inject constructor(
      * @param result - 스캔한 QR 코드 결과 문자열
      */
     private fun scanToLotto(result: String) {
+        Timber.d("LottoEditViewModel.scanToLotto: QR 코드 스캔 결과: $result")
+
         when (val model = convertUseCase(result)) {
             is LottoResult.Success -> {
                 // 변환 성공
-                reduce { it.copy(insertItems = it.insertItems + model.value) }
-            }
+                reduce { it.copy(insertItems = model.value + it.insertItems) }
 
+                // 첫 번째 항목의 타입으로 UI 타입 변경
+                viewModelScope.launch {
+                    delay(1_000L)
+                    emit(LottoEditEffect.ChangeType(model.value.first().type))
+                    emit(LottoEditEffect.ShowSnackbar("QR 코드 변환 성공! ${model.value.first().type.title} ${model.value.size}개 추가"))
+                }
+            }
             is LottoResult.Fail -> {
-                // 변환 실패
-                viewModelScope.launch { emit(LottoEditEffect.ShowSnackbar("QR 코드 변환 실패: $result")) }
+                viewModelScope.launch {
+                    delay(1_000L)
+                    emit(LottoEditEffect.ShowSnackbar("QR 코드 변환 실패: ${model.message}"))
+                }
             }
         }
     }
