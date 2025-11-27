@@ -19,3 +19,23 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Gson
+-keep class com.jdw.random_lotto.data.lotto.winning.** { *; }
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# ZXing
+-keep class com.google.zxing.** { *; }
+-dontwarn com.google.zxing.**
+
+# Lottie
+-keep class com.airbnb.lottie.** { *; }
+-dontwarn com.airbnb.lottie.**
+
+# Dagger - Hilt
+-dontwarn dagger.**
+-dontwarn javax.inject.**
+-dontwarn androidx.hilt.**
+
